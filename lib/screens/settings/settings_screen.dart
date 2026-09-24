@@ -120,7 +120,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _dropdownField(String label, String value, List<String> options, ValueChanged<String> onChanged) {
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       isExpanded: true,
       style: const TextStyle(fontSize: 13),
       decoration: InputDecoration(labelText: label),
