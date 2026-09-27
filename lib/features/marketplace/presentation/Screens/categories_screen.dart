@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/utils/app_theme.dart';
+import '../../data/models/category_model.dart';
 import '../providers/home_provider.dart';
 
 /// All Categories tab: full grid of every marketplace category.
 class CategoriesScreen extends StatelessWidget {
-  const CategoriesScreen({super.key});
+  const CategoriesScreen({super.key, this.onCategoryTap});
+
+  final ValueChanged<Category>? onCategoryTap;
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +22,7 @@ class CategoriesScreen extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: Text(
-            'All Categories',
-            style: AppTextStyles.headline(context),
-          ),
+          child: Text('All Categories', style: AppTextStyles.headline(context)),
         ),
         Expanded(
           child: categories.isEmpty
@@ -42,11 +42,7 @@ class CategoriesScreen extends StatelessWidget {
                       name: category.name,
                       count: category.productCount,
                       imageUrl: category.imageUrl,
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Browsing categories...')),
-                        );
-                      },
+                      onTap: () => onCategoryTap?.call(category),
                     );
                   },
                 ),
@@ -80,16 +76,20 @@ class _CategoryCard extends StatelessWidget {
             SizedBox(
               width: 72,
               child: imageUrl.isEmpty
-                  ? const Icon(Icons.category_outlined,
-                      color: AppColors.primaryDeep, size: 32)
+                  ? const Icon(
+                      Icons.category_outlined,
+                      color: AppColors.primaryDeep,
+                      size: 32,
+                    )
                   : CachedNetworkImage(
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
                       placeholder: (context, _) => const SizedBox.shrink(),
                       errorWidget: (context, _, _) => const Icon(
-                          Icons.category_outlined,
-                          color: AppColors.primaryDeep,
-                          size: 32),
+                        Icons.category_outlined,
+                        color: AppColors.primaryDeep,
+                        size: 32,
+                      ),
                     ),
             ),
             Expanded(

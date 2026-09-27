@@ -17,13 +17,19 @@ import 'product_navigation.dart';
 /// Renders the banner carousel, category grid, featured products,
 /// recommended products, and featured vendors from [HomeProvider].
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, this.onSearchTap, this.onBrowseAll});
+  const HomeScreen({
+    super.key,
+    this.onSearchTap,
+    this.onBrowseAll,
+    this.onCategoryTap,
+  });
 
   /// Switches the top navigation to the Search tab.
   final VoidCallback? onSearchTap;
 
   /// Switches the top navigation to the Shop tab (All Categories).
   final VoidCallback? onBrowseAll;
+  final ValueChanged<Category>? onCategoryTap;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +64,7 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 12),
             CategoryGrid(
               categories: visibleCategories,
-              onCategoryTap: (category) => _onCategoryTap(context, category),
+              onCategoryTap: _onCategoryTap,
             ),
             const SizedBox(height: 20),
           ],
@@ -84,15 +90,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _onCategoryTap(BuildContext context, Category category) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Showing ${category.name} (${category.productCount} items)',
-        ),
-      ),
-    );
-  }
+  void _onCategoryTap(Category category) => onCategoryTap?.call(category);
 }
 
 /// Small notice shown when the feed is served from the mock service.

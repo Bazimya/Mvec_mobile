@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/app_theme.dart';
+import '../../data/models/category_model.dart';
 import 'categories_screen.dart';
 import 'deals_screen.dart';
 import 'for_you_screen.dart';
@@ -41,8 +42,23 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   TopMenuItem _selected = TopMenuItem.home;
+  Category? _selectedCategory;
 
   void _select(TopMenuItem item) => setState(() => _selected = item);
+
+  void _openCategory(Category category) {
+    setState(() {
+      _selectedCategory = category;
+      _selected = TopMenuItem.shop;
+    });
+  }
+
+  void _openAllProducts() {
+    setState(() {
+      _selectedCategory = null;
+      _selected = TopMenuItem.shop;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,12 +73,16 @@ class _MainNavigationState extends State<MainNavigation> {
                 index: _selected.index,
                 children: [
                   const SearchScreen(),
-                  const CategoriesScreen(),
+                  CategoriesScreen(onCategoryTap: _openCategory),
                   HomeScreen(
                     onSearchTap: () => _select(TopMenuItem.search),
-                    onBrowseAll: () => _select(TopMenuItem.shop),
+                    onBrowseAll: _openAllProducts,
+                    onCategoryTap: _openCategory,
                   ),
-                  const ShopScreen(),
+                  ShopScreen(
+                    key: ValueKey<int?>(_selectedCategory?.id),
+                    initialCategory: _selectedCategory,
+                  ),
                   const ForYouScreen(),
                   const DealsScreen(),
                   const VendorsScreen(),
@@ -124,9 +144,7 @@ class _MenuPill extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       shape: StadiumBorder(
-        side: BorderSide(
-          color: active ? Colors.transparent : AppColors.border,
-        ),
+        side: BorderSide(color: active ? Colors.transparent : AppColors.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(

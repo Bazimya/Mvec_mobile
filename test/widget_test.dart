@@ -82,4 +82,21 @@ void main() {
 
     expect(find.text('#MV-20415'), findsOneWidget);
   });
+
+  testWidgets('selecting a category shows products in that category', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MvecApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('All Categories').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Electronics'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Shop'), findsAtLeastNWidgets(2));
+    expect(find.text('1 products'), findsOneWidget);
+    expect(find.text('Gaming Mechanical Keyboard'), findsOneWidget);
+    expect(find.text('Linen Summer Dress'), findsNothing);
+  });
 }

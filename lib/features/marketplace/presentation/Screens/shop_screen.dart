@@ -24,7 +24,9 @@ enum SortOption {
 
 /// Shop tab: browse, filter by category, and sort the product catalog.
 class ShopScreen extends StatefulWidget {
-  const ShopScreen({super.key});
+  const ShopScreen({super.key, this.initialCategory});
+
+  final Category? initialCategory;
 
   @override
   State<ShopScreen> createState() => _ShopScreenState();
@@ -34,6 +36,12 @@ class _ShopScreenState extends State<ShopScreen> {
   String _query = '';
   Category? _category;
   SortOption _sort = SortOption.popular;
+
+  @override
+  void initState() {
+    super.initState();
+    _category = widget.initialCategory;
+  }
 
   List<Product> _applyFilters(List<Product> products) {
     final term = _query.trim().toLowerCase();
