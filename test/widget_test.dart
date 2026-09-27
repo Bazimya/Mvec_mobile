@@ -32,6 +32,67 @@ void main() {
     expect(find.text('Wireless Over-Ear Headphones'), findsWidgets);
   });
 
+  testWidgets('home cart and wishlist badges show current item counts', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MvecApp());
+    await tester.pumpAndSettle();
+
+    Badge badgeFor(String countKey) =>
+        tester.widget<Badge>(find.byKey(ValueKey<String>(countKey)));
+
+    expect(badgeFor('home-cart-count').isLabelVisible, isFalse);
+    expect(badgeFor('home-wishlist-count').isLabelVisible, isFalse);
+
+    final homeList = find
+        .descendant(
+          of: find.byType(HomeScreen),
+          matching: find.byType(ListView),
+        )
+        .first;
+    await tester.drag(homeList, const Offset(0, -600));
+    await tester.pumpAndSettle();
+
+    final productName = find.text('Wireless Over-Ear Headphones').first;
+    await tester.tap(productName);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add to Cart'));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.arrow_back_ios_new));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.text('Search products, brands & more'), findsOneWidget);
+    expect(find.byTooltip('Cart'), findsOneWidget);
+    expect(find.byTooltip('Wishlist'), findsOneWidget);
+    final cartBadge = badgeFor('home-cart-count');
+    expect(cartBadge.isLabelVisible, isTrue);
+    expect((cartBadge.label as Text).data, '1');
+
+    await tester.ensureVisible(productName);
+    await tester.tap(productName);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Add to wishlist'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.arrow_back_ios_new));
+    await tester.pumpAndSettle();
+
+    final wishlistBadge = badgeFor('home-wishlist-count');
+    expect(wishlistBadge.isLabelVisible, isTrue);
+    expect((wishlistBadge.label as Text).data, '1');
+
+    await tester.tap(find.byTooltip('Wishlist'));
+    await tester.pumpAndSettle();
+    expect(find.text('My Wishlist'), findsOneWidget);
+    await tester.tap(find.byType(BackButton).last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Cart'));
+    await tester.pumpAndSettle();
+    expect(find.text('My Cart'), findsOneWidget);
+  });
+
   testWidgets('product wishlist can be moved into the cart', (
     WidgetTester tester,
   ) async {
@@ -49,7 +110,7 @@ void main() {
     await tester.tap(find.text('Wireless Over-Ear Headphones').first);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.favorite_border).first);
+    await tester.tap(find.byTooltip('Add to wishlist'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Open wishlist'));
     await tester.pumpAndSettle();
