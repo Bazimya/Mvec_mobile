@@ -265,7 +265,7 @@ class _ProductRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.read<HomeProvider>();
     return SizedBox(
-      height: 230,
+      height: 240,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: products.length,

@@ -1,8 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/utils/app_theme.dart';
 import '../../data/models/product_model.dart';
+import '../providers/commerce_provider.dart';
+import '../Screens/product_navigation.dart';
 
 /// Reusable product card showing thumbnail, discount badge, rating,
 /// name, brand, and the current/discounted price.
@@ -26,6 +29,11 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final detailProduct = toLegacyProduct(product);
+    final isWishlisted = context.select<CommerceProvider, bool>(
+      (commerce) => commerce.isWishlisted(detailProduct),
+    );
+
     return SizedBox(
       width: width,
       child: Card(
@@ -60,18 +68,66 @@ class ProductCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.star_rounded,
-                            color: AppColors.secondary, size: 16),
-                        const SizedBox(width: 2),
-                        Text(
-                          product.rating.toStringAsFixed(1),
-                          style: AppTextStyles.caption(context)
-                              .copyWith(color: AppColors.textPrimary),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.star_rounded,
+                                color: AppColors.secondary,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                product.rating.toStringAsFixed(1),
+                                style: AppTextStyles.caption(context)
+                                    .copyWith(color: AppColors.textPrimary),
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  '(${product.ratingCount})',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTextStyles.caption(context),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '(${product.ratingCount})',
-                          style: AppTextStyles.caption(context),
+                        IconButton(
+                          tooltip: isWishlisted
+                              ? 'Remove from wishlist'
+                              : 'Add to wishlist',
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints.tightFor(
+                            width: 28,
+                            height: 28,
+                          ),
+                          onPressed: () => context
+                              .read<CommerceProvider>()
+                              .toggleWishlist(detailProduct),
+                          icon: Icon(
+                            isWishlisted
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: isWishlisted ? Colors.red : null,
+                            size: 18,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Add to cart',
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints.tightFor(
+                            width: 28,
+                            height: 28,
+                          ),
+                          onPressed: product.inStock
+                              ? () => context
+                                    .read<CommerceProvider>()
+                                    .addToCart(detailProduct)
+                              : null,
+                          icon: const Icon(Icons.add_shopping_cart, size: 18),
                         ),
                       ],
                     ),
@@ -89,7 +145,7 @@ class ProductCard extends StatelessWidget {
                                     fontSize: 14,
                                   )
                                 : AppTextStyles.price(context)
-                                    .copyWith(fontSize: 14),
+                                      .copyWith(fontSize: 14),
                           ),
                         ),
                         if (product.originalPrice != null) ...<Widget>[
@@ -130,20 +186,25 @@ class _Thumbnail extends StatelessWidget {
           if (product.imageUrl.isEmpty)
             Container(
               color: AppColors.soft,
-              child: const Icon(Icons.image_not_supported_outlined,
-                  size: 28, color: AppColors.primaryDeep),
+              child: const Icon(
+                Icons.image_not_supported_outlined,
+                size: 28,
+                color: AppColors.primaryDeep,
+              ),
             )
           else
             CachedNetworkImage(
               imageUrl: product.imageUrl,
               fit: BoxFit.cover,
-              placeholder: (context, _) => const ColoredBox(
-                color: AppColors.soft,
-              ),
+              placeholder: (context, _) =>
+                  const ColoredBox(color: AppColors.soft),
               errorWidget: (context, _, _) => Container(
                 color: AppColors.soft,
-                child: const Icon(Icons.image_not_supported_outlined,
-                    size: 28, color: AppColors.primaryDeep),
+                child: const Icon(
+                  Icons.image_not_supported_outlined,
+                  size: 28,
+                  color: AppColors.primaryDeep,
+                ),
               ),
             ),
           if (product.discountPercent > 0)
@@ -151,10 +212,7 @@ class _Thumbnail extends StatelessWidget {
               top: 8,
               left: 8,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 3,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.error,
                   borderRadius: BorderRadius.circular(6),

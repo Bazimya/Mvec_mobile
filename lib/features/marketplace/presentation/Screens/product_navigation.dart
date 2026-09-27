@@ -10,26 +10,28 @@ import '../../../../models/product.dart' as legacy;
 import '../providers/commerce_provider.dart';
 import '../../data/models/product_model.dart' as marketplace;
 
+legacy.Product toLegacyProduct(marketplace.Product product) => legacy.Product(
+  id: product.id.toString(),
+  name: product.name,
+  description: product.description,
+  price: product.price,
+  oldPrice: product.originalPrice,
+  stock: product.stockQuantity,
+  images: product.imageUrl.isEmpty ? const <String>[] : [product.imageUrl],
+  colors: const <String>[],
+  sizes: const <String>[],
+  vendor: legacy.Vendor(
+    id: product.vendorId?.toString() ?? '',
+    name: product.vendorName ?? product.brand ?? 'Marketplace seller',
+    logo: '',
+    rating: product.rating,
+    totalProducts: 0,
+  ),
+);
+
 void openProductDetails(BuildContext context, marketplace.Product product) {
   final commerce = context.read<CommerceProvider>();
-  final detailProduct = legacy.Product(
-    id: product.id.toString(),
-    name: product.name,
-    description: product.description,
-    price: product.price,
-    oldPrice: product.originalPrice,
-    stock: product.stockQuantity,
-    images: product.imageUrl.isEmpty ? const <String>[] : [product.imageUrl],
-    colors: const <String>[],
-    sizes: const <String>[],
-    vendor: legacy.Vendor(
-      id: product.vendorId?.toString() ?? '',
-      name: product.vendorName ?? product.brand ?? 'Marketplace seller',
-      logo: '',
-      rating: product.rating,
-      totalProducts: 0,
-    ),
-  );
+  final detailProduct = toLegacyProduct(product);
 
   Navigator.of(context).push<void>(
     MaterialPageRoute<void>(
