@@ -10,6 +10,7 @@ import '../Widgets/banner_carousel.dart';
 import '../Widgets/category_grid.dart';
 import '../Widgets/product_card.dart';
 import '../Widgets/vendor_card.dart';
+import 'product_navigation.dart';
 
 /// Marketplace home feed.
 ///
@@ -33,8 +34,9 @@ class HomeScreen extends StatelessWidget {
     }
 
     final categories = provider.categories;
-    final visibleCategories =
-        categories.length > 8 ? categories.sublist(0, 8) : categories;
+    final visibleCategories = categories.length > 8
+        ? categories.sublist(0, 8)
+        : categories;
 
     return RefreshIndicator(
       onRefresh: provider.loadHomeFeed,
@@ -85,7 +87,9 @@ class HomeScreen extends StatelessWidget {
   void _onCategoryTap(BuildContext context, Category category) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Showing ${category.name} (${category.productCount} items)'),
+        content: Text(
+          'Showing ${category.name} (${category.productCount} items)',
+        ),
       ),
     );
   }
@@ -161,11 +165,7 @@ class _SearchBar extends StatelessWidget {
 
 /// Section title row with an optional trailing action.
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({
-    required this.title,
-    this.actionLabel,
-    this.onAction,
-  });
+  const _SectionHeader({required this.title, this.actionLabel, this.onAction});
 
   final String title;
   final String? actionLabel;
@@ -215,9 +215,7 @@ class _ProductRow extends StatelessWidget {
             product: product,
             onTap: () {
               provider.addRecentlyViewed(product);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${product.name} added to your For You')),
-              );
+              openProductDetails(context, product);
             },
           );
         },

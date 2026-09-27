@@ -6,6 +6,7 @@ import '../../data/models/category_model.dart';
 import '../../data/models/product_model.dart';
 import '../providers/home_provider.dart';
 import '../Widgets/product_card.dart';
+import 'product_navigation.dart';
 
 /// How the shop results are ordered.
 enum SortOption {
@@ -39,11 +40,13 @@ class _ShopScreenState extends State<ShopScreen> {
     return products.where((product) {
       final matchesCategory =
           _category == null || product.categoryId == _category!.id;
-      final matchesQuery = term.isEmpty ||
-          [product.name, product.brand ?? '', product.vendorName ?? '']
-              .join(' ')
-              .toLowerCase()
-              .contains(term);
+      final matchesQuery =
+          term.isEmpty ||
+          [
+            product.name,
+            product.brand ?? '',
+            product.vendorName ?? '',
+          ].join(' ').toLowerCase().contains(term);
       return matchesCategory && matchesQuery;
     }).toList();
   }
@@ -155,9 +158,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       product: product,
                       onTap: () {
                         context.read<HomeProvider>().addRecentlyViewed(product);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${product.name} opened')),
-                        );
+                        openProductDetails(context, product);
                       },
                     );
                   },
