@@ -135,6 +135,54 @@ void main() {
     expect(find.text('Add to Cart'), findsNothing);
   });
 
+  testWidgets('adding a wishlisted product to cart removes it from wishlist', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MvecApp());
+    await tester.pumpAndSettle();
+
+    final homeList = find
+        .descendant(
+          of: find.byType(HomeScreen),
+          matching: find.byType(ListView),
+        )
+        .first;
+    await tester.drag(homeList, const Offset(0, -600));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Add to wishlist').first);
+    await tester.pumpAndSettle();
+    expect(
+      (tester
+                  .widget<Badge>(
+                    find.byKey(const ValueKey('home-wishlist-count')),
+                  )
+                  .label
+              as Text)
+          .data,
+      '1',
+    );
+
+    await tester.tap(find.byTooltip('Add to cart').first);
+    await tester.pumpAndSettle();
+
+    final wishlistBadge = tester.widget<Badge>(
+      find.byKey(const ValueKey('home-wishlist-count')),
+    );
+    expect(wishlistBadge.isLabelVisible, isFalse);
+    expect(
+      (tester.widget<Badge>(find.byKey(const ValueKey('home-cart-count'))).label
+              as Text)
+          .data,
+      '1',
+    );
+
+    await tester.tap(find.byTooltip('Cart'));
+    await tester.pumpAndSettle();
+    expect(find.text('My Cart'), findsOneWidget);
+    expect(find.textContaining('Wireless Over-Ear Headphones'), findsOneWidget);
+  });
+
   testWidgets('product wishlist can be moved into the cart', (
     WidgetTester tester,
   ) async {

@@ -28,15 +28,12 @@ class CommerceProvider extends ChangeNotifier {
   }
 
   void addToCart(Product product) {
-    _addToCart(product);
-    notifyListeners();
-  }
-
-  void moveToCart(Product product) {
     _wishlistItems.removeWhere((item) => item.id == product.id);
     _addToCart(product);
     notifyListeners();
   }
+
+  void moveToCart(Product product) => addToCart(product);
 
   void _addToCart(Product product) {
     final matchingItems = _cartItems.where(
