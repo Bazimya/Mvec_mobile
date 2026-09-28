@@ -10,19 +10,26 @@ import '../Widgets/banner_carousel.dart';
 import '../Widgets/category_grid.dart';
 import '../Widgets/product_card.dart';
 import '../Widgets/vendor_card.dart';
+import 'product_navigation.dart';
 
 /// Marketplace home feed.
 ///
 /// Renders the banner carousel, category grid, featured products,
 /// recommended products, and featured vendors from [HomeProvider].
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, this.onSearchTap, this.onBrowseAll});
+  const HomeScreen({
+    super.key,
+    this.onSearchTap,
+    this.onBrowseAll,
+    this.onCategoryTap,
+  });
 
   /// Switches the top navigation to the Search tab.
   final VoidCallback? onSearchTap;
 
   /// Switches the top navigation to the Shop tab (All Categories).
   final VoidCallback? onBrowseAll;
+  final ValueChanged<Category>? onCategoryTap;
 
   @override
   Widget build(BuildContext context) {
@@ -33,62 +40,65 @@ class HomeScreen extends StatelessWidget {
     }
 
     final categories = provider.categories;
-    final visibleCategories =
-        categories.length > 8 ? categories.sublist(0, 8) : categories;
+    final visibleCategories = categories.length > 8
+        ? categories.sublist(0, 8)
+        : categories;
 
-    return RefreshIndicator(
-      onRefresh: provider.loadHomeFeed,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-        children: [
-          _SearchBar(onTap: onSearchTap),
-          const SizedBox(height: 12),
-          if (provider.isDemo) const _DemoNotice(),
-          const SizedBox(height: 12),
-          BannerCarousel(banners: provider.banners),
-          const SizedBox(height: 20),
-          if (visibleCategories.isNotEmpty) ...<Widget>[
-            _SectionHeader(
-              title: 'All Categories',
-              actionLabel: 'See all',
-              onAction: onBrowseAll,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: _SearchBar(onTap: onSearchTap),
+        ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: provider.loadHomeFeed,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              children: [
+                if (provider.isDemo) const _DemoNotice(),
+                const SizedBox(height: 12),
+                BannerCarousel(banners: provider.banners),
+                const SizedBox(height: 20),
+                if (visibleCategories.isNotEmpty) ...<Widget>[
+                  _SectionHeader(
+                    title: 'All Categories',
+                    actionLabel: 'See all',
+                    onAction: onBrowseAll,
+                  ),
+                  const SizedBox(height: 12),
+                  CategoryGrid(
+                    categories: visibleCategories,
+                    onCategoryTap: _onCategoryTap,
+                  ),
+                  const SizedBox(height: 20),
+                ],
+                if (provider.featuredProducts.isNotEmpty) ...<Widget>[
+                  _SectionHeader(title: 'Featured Products'),
+                  const SizedBox(height: 12),
+                  _ProductRow(products: provider.featuredProducts),
+                  const SizedBox(height: 20),
+                ],
+                if (provider.recommendedProducts.isNotEmpty) ...<Widget>[
+                  _SectionHeader(title: 'Recommended For You'),
+                  const SizedBox(height: 12),
+                  _ProductRow(products: provider.recommendedProducts),
+                  const SizedBox(height: 20),
+                ],
+                if (provider.vendors.isNotEmpty) ...<Widget>[
+                  _SectionHeader(title: 'Trusted Vendors'),
+                  const SizedBox(height: 12),
+                  _VendorRow(vendors: provider.vendors),
+                ],
+              ],
             ),
-            const SizedBox(height: 12),
-            CategoryGrid(
-              categories: visibleCategories,
-              onCategoryTap: (category) => _onCategoryTap(context, category),
-            ),
-            const SizedBox(height: 20),
-          ],
-          if (provider.featuredProducts.isNotEmpty) ...<Widget>[
-            _SectionHeader(title: 'Featured Products'),
-            const SizedBox(height: 12),
-            _ProductRow(products: provider.featuredProducts),
-            const SizedBox(height: 20),
-          ],
-          if (provider.recommendedProducts.isNotEmpty) ...<Widget>[
-            _SectionHeader(title: 'Recommended For You'),
-            const SizedBox(height: 12),
-            _ProductRow(products: provider.recommendedProducts),
-            const SizedBox(height: 20),
-          ],
-          if (provider.vendors.isNotEmpty) ...<Widget>[
-            _SectionHeader(title: 'Trusted Vendors'),
-            const SizedBox(height: 12),
-            _VendorRow(vendors: provider.vendors),
-          ],
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
 
-  void _onCategoryTap(BuildContext context, Category category) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Showing ${category.name} (${category.productCount} items)'),
-      ),
-    );
-  }
+  void _onCategoryTap(Category category) => onCategoryTap?.call(category);
 }
 
 /// Small notice shown when the feed is served from the mock service.
@@ -161,11 +171,7 @@ class _SearchBar extends StatelessWidget {
 
 /// Section title row with an optional trailing action.
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({
-    required this.title,
-    this.actionLabel,
-    this.onAction,
-  });
+  const _SectionHeader({required this.title, this.actionLabel, this.onAction});
 
   final String title;
   final String? actionLabel;
@@ -204,7 +210,7 @@ class _ProductRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.read<HomeProvider>();
     return SizedBox(
-      height: 230,
+      height: 240,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: products.length,
@@ -215,9 +221,7 @@ class _ProductRow extends StatelessWidget {
             product: product,
             onTap: () {
               provider.addRecentlyViewed(product);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${product.name} added to your For You')),
-              );
+              openProductDetails(context, product);
             },
           );
         },

@@ -6,6 +6,7 @@ import '../../data/models/category_model.dart';
 import '../../data/models/product_model.dart';
 import '../providers/home_provider.dart';
 import '../Widgets/product_card.dart';
+import 'product_navigation.dart';
 
 /// How the shop results are ordered.
 enum SortOption {
@@ -23,7 +24,9 @@ enum SortOption {
 
 /// Shop tab: browse, filter by category, and sort the product catalog.
 class ShopScreen extends StatefulWidget {
-  const ShopScreen({super.key});
+  const ShopScreen({super.key, this.initialCategory});
+
+  final Category? initialCategory;
 
   @override
   State<ShopScreen> createState() => _ShopScreenState();
@@ -34,16 +37,24 @@ class _ShopScreenState extends State<ShopScreen> {
   Category? _category;
   SortOption _sort = SortOption.popular;
 
+  @override
+  void initState() {
+    super.initState();
+    _category = widget.initialCategory;
+  }
+
   List<Product> _applyFilters(List<Product> products) {
     final term = _query.trim().toLowerCase();
     return products.where((product) {
       final matchesCategory =
           _category == null || product.categoryId == _category!.id;
-      final matchesQuery = term.isEmpty ||
-          [product.name, product.brand ?? '', product.vendorName ?? '']
-              .join(' ')
-              .toLowerCase()
-              .contains(term);
+      final matchesQuery =
+          term.isEmpty ||
+          [
+            product.name,
+            product.brand ?? '',
+            product.vendorName ?? '',
+          ].join(' ').toLowerCase().contains(term);
       return matchesCategory && matchesQuery;
     }).toList();
   }
@@ -155,9 +166,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       product: product,
                       onTap: () {
                         context.read<HomeProvider>().addRecentlyViewed(product);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${product.name} opened')),
-                        );
+                        openProductDetails(context, product);
                       },
                     );
                   },
