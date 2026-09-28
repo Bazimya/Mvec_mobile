@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mvec_mobile/features/marketplace/presentation/Screens/home_screen.dart';
 import 'package:mvec_mobile/main.dart';
 
 void main() {
-  testWidgets('selecting a product opens its details', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(const MvecApp());
-    await tester.pumpAndSettle();
+  testWidgets('App boots to the login screen', (WidgetTester tester) async {
+    await tester.pumpWidget(const ProviderScope(child: MvecAdminApp()));
 
-    final homeList = find
-        .descendant(
-          of: find.byType(HomeScreen),
-          matching: find.byType(ListView),
-        )
-        .first;
-    await tester.drag(homeList, const Offset(0, -600));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('ADMIN CONTROL'), findsOneWidget);
+    expect(find.text('Email or telephone'), findsOneWidget);
+    expect(find.text('Password'), findsOneWidget);
+    expect(find.byType(TextField), findsNWidgets(2));
+  testWidgets('product detail screen loads', (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
 
     final productName = find.text('Wireless Over-Ear Headphones').first;
     await tester.tap(productName);
