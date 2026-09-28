@@ -8,6 +8,8 @@ import '../features/marketplace/presentation/providers/home_provider.dart';
 import '../providers/auth_provider.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/login_screen.dart';
+import '../screens/account/account_screen.dart';
+import '../screens/buyers/buyers_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
 import '../screens/auth/verification_code_screen.dart';
@@ -185,6 +187,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/suppliers',
         builder: (context, state) =>
             const AdminShell(path: '/admin/suppliers', child: SuppliersScreen()),
+      ),
+      GoRoute(
+        path: '/admin/buyers',
+        builder: (context, state) => const AdminShell(path: '/admin/buyers', child: BuyersScreen()),
+      ),
+      GoRoute(
+        path: '/admin/account',
+        builder: (context, state) => const AdminShell(path: '/admin/account', child: AccountScreen()),
       ),
       GoRoute(
         path: '/admin/affiliates',
