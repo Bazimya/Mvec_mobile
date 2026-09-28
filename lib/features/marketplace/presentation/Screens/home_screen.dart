@@ -5,7 +5,6 @@ import '../../../../core/utils/app_theme.dart';
 import '../../data/models/category_model.dart';
 import '../../data/models/product_model.dart';
 import '../../data/models/vendor_model.dart';
-import '../providers/commerce_provider.dart';
 import '../providers/home_provider.dart';
 import '../Widgets/banner_carousel.dart';
 import '../Widgets/category_grid.dart';
@@ -35,11 +34,6 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<HomeProvider>();
-    final commerce = context.watch<CommerceProvider>();
-    final cartItemCount = commerce.cartItems.fold<int>(
-      0,
-      (count, item) => count + item.quantity,
-    );
 
     if (provider.isLoading && provider.feed.banners.isEmpty) {
       return const Center(child: CircularProgressIndicator());
@@ -54,26 +48,7 @@ class HomeScreen extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: Row(
-            children: [
-              Expanded(child: _SearchBar(onTap: onSearchTap)),
-              const SizedBox(width: 4),
-              _HomeCountButton(
-                icon: Icons.favorite_border,
-                tooltip: 'Wishlist',
-                count: commerce.wishlistItems.length,
-                countKey: 'home-wishlist-count',
-                onPressed: () => openWishlist(context, commerce),
-              ),
-              _HomeCountButton(
-                icon: Icons.shopping_cart_outlined,
-                tooltip: 'Cart',
-                count: cartItemCount,
-                countKey: 'home-cart-count',
-                onPressed: () => openCart(context, commerce),
-              ),
-            ],
-          ),
+          child: _SearchBar(onTap: onSearchTap),
         ),
         Expanded(
           child: RefreshIndicator(
@@ -124,36 +99,6 @@ class HomeScreen extends StatelessWidget {
   }
 
   void _onCategoryTap(Category category) => onCategoryTap?.call(category);
-}
-
-class _HomeCountButton extends StatelessWidget {
-  const _HomeCountButton({
-    required this.icon,
-    required this.tooltip,
-    required this.count,
-    required this.countKey,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final int count;
-  final String countKey;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: tooltip,
-      onPressed: onPressed,
-      icon: Badge(
-        key: ValueKey<String>(countKey),
-        isLabelVisible: count > 0,
-        label: Text(count > 99 ? '99+' : '$count'),
-        child: Icon(icon),
-      ),
-    );
-  }
 }
 
 /// Small notice shown when the feed is served from the mock service.
