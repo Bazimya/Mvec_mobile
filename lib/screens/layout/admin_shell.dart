@@ -245,7 +245,9 @@ child: Container(
                   const SizedBox(height: 8),
                   _bottomLink('View marketplace', 'home', () {
                     Navigator.pop(context);
-                    context.go('/');
+                    // Must target /home directly: '/' redirects via roleHome(),
+                    // which sends a super_admin straight back to /admin.
+                    context.go('/home');
                   }),
                   _bottomLink('Sign out', 'logout', () async {
                     await ref.read(authControllerProvider.notifier).logout();

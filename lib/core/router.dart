@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart' as p;
 
 import '../features/marketplace/presentation/Screens/main_navigation.dart';
-import '../features/marketplace/presentation/providers/home_provider.dart';
 import '../providers/auth_provider.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -126,10 +124,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/home',
-        builder: (_, __) => p.ChangeNotifierProvider(
-          create: (_) => HomeProvider()..loadHomeFeed(),
-          child: const MainNavigation(),
-        ),
+        builder: (_, __) => const MainNavigationScreen(),
       ),
       GoRoute(
         path: '/admin',

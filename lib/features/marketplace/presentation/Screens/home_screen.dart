@@ -16,16 +16,13 @@ import 'product_navigation.dart';
 ///
 /// Renders the banner carousel, category grid, featured products,
 /// recommended products, and featured vendors from [HomeProvider].
+/// Search lives in the shell's top bar, so it is not repeated here.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
     super.key,
-    this.onSearchTap,
     this.onBrowseAll,
     this.onCategoryTap,
   });
-
-  /// Switches the top navigation to the Search tab.
-  final VoidCallback? onSearchTap;
 
   /// Switches the top navigation to the Shop tab (All Categories).
   final VoidCallback? onBrowseAll;
@@ -46,10 +43,6 @@ class HomeScreen extends StatelessWidget {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: _SearchBar(onTap: onSearchTap),
-        ),
         Expanded(
           child: RefreshIndicator(
             onRefresh: provider.loadHomeFeed,
@@ -129,41 +122,6 @@ class _DemoNotice extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Fake search field that routes to the Search tab.
-class _SearchBar extends StatelessWidget {
-  const _SearchBar({this.onTap});
-
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.search, color: AppColors.textSecondary),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Search products, brands & more',
-                style: AppTextStyles.bodySecondary(context),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

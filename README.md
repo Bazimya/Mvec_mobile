@@ -22,6 +22,34 @@ development builds.
 > The backend must be running first. See `Mvec_backend/README.md` — the short
 > version is `npm install && npm run setup && npm run dev`.
 
+### Demo mode (no backend)
+
+To present the app with nothing running locally, add `DEMO_MODE=true`:
+
+```bash
+flutter run --dart-define=DEMO_MODE=true
+```
+
+This opens the auth gate locally — **any** non-empty email and password is
+accepted, and no network call is made. Use an identity containing `admin` to
+land on the control center (`/admin`); any other identity lands on the
+marketplace home feed (`/home`).
+
+The marketplace is served entirely from local mock data, so it is fully
+presentable offline. The admin console renders, but its data comes from the
+backend — offline it falls back to empty/`—` placeholders rather than crashing.
+
+The flag is **off by default**, so release builds always talk to the real
+backend. Verify it with:
+
+```bash
+flutter test --dart-define=DEMO_MODE=true test/demo_mode_test.dart
+```
+
+> Note: the Linux desktop target additionally needs `libsecret-1-dev` on the
+> host (pulled in by `flutter_secure_storage`). Web and Android need nothing
+> extra.
+
 ### Useful commands
 
 | Command                                     | Purpose                         |
