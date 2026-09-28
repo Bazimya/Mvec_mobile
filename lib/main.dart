@@ -224,6 +224,7 @@ import 'package:provider/provider.dart';
 
 import 'core/utils/app_theme.dart';
 import 'features/marketplace/presentation/Screens/main_navigation.dart';
+import 'features/marketplace/presentation/providers/commerce_provider.dart';
 import 'features/marketplace/presentation/providers/home_provider.dart';
 
 Future<void> main() async {
@@ -237,8 +238,11 @@ class MvecApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => HomeProvider()..loadHomeFeed(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => HomeProvider()..loadHomeFeed()),
+        ChangeNotifierProvider(create: (_) => CommerceProvider()),
+      ],
       child: MaterialApp(
         title: 'Mvec Marketplace',
         debugShowCheckedModeBanner: false,

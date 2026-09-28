@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/product.dart';
 
 class ProductDetailPage extends StatefulWidget {
@@ -83,28 +84,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
-              IconButton(
-                icon: Icon(
-                  _isWishlisted ? Icons.favorite : Icons.favorite_border,
-                  color: _isWishlisted ? Colors.red : null,
-                ),
-                onPressed: () {
-                  _toggleWishlist();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        _isWishlisted
-                            ? 'Added to wishlist'
-                            : 'Removed from wishlist',
-                      ),
-                      duration: const Duration(seconds: 1),
-                    ),
-                  );
-                },
-              ),
               if (widget.onOpenWishlist != null)
                 IconButton(
-                  icon: const Icon(Icons.list_alt_outlined),
+                  icon: const Icon(Icons.favorite_border, color: Colors.black),
                   tooltip: 'Open wishlist',
                   onPressed: widget.onOpenWishlist,
                 ),
@@ -171,7 +153,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                 product.images.length,
                                 (index) => AnimatedContainer(
                                   duration: const Duration(milliseconds: 300),
-                                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
                                   width: _currentImageIndex == index ? 20 : 8,
                                   height: 8,
                                   decoration: BoxDecoration(
@@ -240,24 +224,24 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           color: isOutOfStock
                               ? Colors.red.withValues(alpha: 0.12)
                               : isLowStock
-                                  ? Colors.orange.withValues(alpha: 0.12)
-                                  : Colors.green.withValues(alpha: 0.12),
+                              ? Colors.orange.withValues(alpha: 0.12)
+                              : Colors.green.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           isOutOfStock
                               ? 'Out of Stock'
                               : isLowStock
-                                  ? 'Only ${product.stock} left'
-                                  : 'In Stock (${product.stock})',
+                              ? 'Only ${product.stock} left'
+                              : 'In Stock (${product.stock})',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: isOutOfStock
                                 ? Colors.red
                                 : isLowStock
-                                    ? Colors.orange[800]
-                                    : Colors.green[700],
+                                ? Colors.orange[800]
+                                : Colors.green[700],
                           ),
                         ),
                       ),
@@ -307,7 +291,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               const SizedBox(height: 3),
                               Row(
                                 children: [
-                                  const Icon(Icons.star, size: 16, color: Colors.amber),
+                                  const Icon(
+                                    Icons.star,
+                                    size: 16,
+                                    color: Colors.amber,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     '${product.vendor.rating} • ${product.vendor.totalProducts} products',
@@ -336,7 +324,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   if (product.colors.isNotEmpty) ...[
                     const Text(
                       'Color',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Wrap(
@@ -355,7 +346,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: isSelected ? theme.primaryColor : Colors.white,
+                              color: isSelected
+                                  ? theme.primaryColor
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: isSelected
@@ -366,7 +359,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             child: Text(
                               color,
                               style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.black87,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.black87,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -381,7 +376,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   if (product.sizes.isNotEmpty) ...[
                     const Text(
                       'Size',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Wrap(
@@ -400,7 +398,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: isSelected ? theme.primaryColor : Colors.white,
+                              color: isSelected
+                                  ? theme.primaryColor
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: isSelected
@@ -411,7 +411,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             child: Text(
                               size,
                               style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.black87,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.black87,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -506,17 +508,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         child: SafeArea(
           child: Row(
             children: [
-              OutlinedButton(
-                onPressed: _toggleWishlist,
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.all(14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              Tooltip(
+                message: _isWishlisted
+                    ? 'Remove from wishlist'
+                    : 'Add to wishlist',
+                child: OutlinedButton(
+                  onPressed: _toggleWishlist,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.all(14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                ),
-                child: Icon(
-                  _isWishlisted ? Icons.favorite : Icons.favorite_border,
-                  color: _isWishlisted ? Colors.red : null,
+                  child: Icon(
+                    _isWishlisted ? Icons.favorite : Icons.favorite_border,
+                    color: _isWishlisted ? Colors.red : null,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -530,7 +537,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           });
 
                           // Simulate adding to cart
-                          await Future.delayed(const Duration(milliseconds: 800));
+                          await Future.delayed(
+                            const Duration(milliseconds: 800),
+                          );
 
                           if (!context.mounted) {
                             return;
