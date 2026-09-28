@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/utils/app_theme.dart';
+import '../../data/models/category_model.dart';
+import '../providers/commerce_provider.dart';
 import 'categories_screen.dart';
 import 'deals_screen.dart';
 import 'for_you_screen.dart';
 import 'home_screen.dart';
 import 'orders_screen.dart';
+import 'product_navigation.dart';
 import 'search_screen.dart';
 import 'shop_screen.dart';
 import 'vendors_screen.dart';
@@ -41,8 +45,23 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   TopMenuItem _selected = TopMenuItem.home;
+  Category? _selectedCategory;
 
   void _select(TopMenuItem item) => setState(() => _selected = item);
+
+  void _openCategory(Category category) {
+    setState(() {
+      _selectedCategory = category;
+      _selected = TopMenuItem.shop;
+    });
+  }
+
+  void _openAllProducts() {
+    setState(() {
+      _selectedCategory = null;
+      _selected = TopMenuItem.shop;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,12 +76,16 @@ class _MainNavigationState extends State<MainNavigation> {
                 index: _selected.index,
                 children: [
                   const SearchScreen(),
-                  const CategoriesScreen(),
+                  CategoriesScreen(onCategoryTap: _openCategory),
                   HomeScreen(
                     onSearchTap: () => _select(TopMenuItem.search),
-                    onBrowseAll: () => _select(TopMenuItem.shop),
+                    onBrowseAll: _openAllProducts,
+                    onCategoryTap: _openCategory,
                   ),
-                  const ShopScreen(),
+                  ShopScreen(
+                    key: ValueKey<int?>(_selectedCategory?.id),
+                    initialCategory: _selectedCategory,
+                  ),
                   const ForYouScreen(),
                   const DealsScreen(),
                   const VendorsScreen(),
@@ -78,6 +101,9 @@ class _MainNavigationState extends State<MainNavigation> {
 }
 
 /// Horizontal, scrollable top menu bar with pill-style tabs.
+///
+/// The wishlist and cart actions are pinned to the trailing edge so they
+/// stay reachable from every tab instead of only the home feed.
 class _TopMenuBar extends StatelessWidget {
   const _TopMenuBar({required this.selected, required this.onSelected});
 
@@ -86,22 +112,85 @@ class _TopMenuBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final commerce = context.watch<CommerceProvider>();
+    final cartItemCount = commerce.cartItems.fold<int>(
+      0,
+      (count, item) => count + item.quantity,
+    );
+
     return SizedBox(
       height: 58,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        scrollDirection: Axis.horizontal,
-        itemCount: TopMenuItem.values.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final item = TopMenuItem.values[index];
-          final isActive = item == selected;
-          return _MenuPill(
-            item: item,
-            active: isActive,
-            onTap: () => onSelected(item),
-          );
-        },
+      child: Row(
+        children: [
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+              scrollDirection: Axis.horizontal,
+              itemCount: TopMenuItem.values.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final item = TopMenuItem.values[index];
+                final isActive = item == selected;
+                return _MenuPill(
+                  item: item,
+                  active: isActive,
+                  onTap: () => onSelected(item),
+                );
+              },
+            ),
+          ),
+          const VerticalDivider(
+            width: 1,
+            thickness: 1,
+            color: AppColors.border,
+          ),
+          _TopBarAction(
+            icon: Icons.favorite_border,
+            tooltip: 'Wishlist',
+            count: commerce.wishlistItems.length,
+            countKey: 'home-wishlist-count',
+            onPressed: () => openWishlist(context, commerce),
+          ),
+          _TopBarAction(
+            icon: Icons.shopping_cart_outlined,
+            tooltip: 'Cart',
+            count: cartItemCount,
+            countKey: 'home-cart-count',
+            onPressed: () => openCart(context, commerce),
+          ),
+          const SizedBox(width: 6),
+        ],
+      ),
+    );
+  }
+}
+
+/// Wishlist/cart icon button with a count badge, shown in the top menu bar.
+class _TopBarAction extends StatelessWidget {
+  const _TopBarAction({
+    required this.icon,
+    required this.tooltip,
+    required this.count,
+    required this.countKey,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final int count;
+  final String countKey;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: Badge(
+        key: ValueKey<String>(countKey),
+        isLabelVisible: count > 0,
+        label: Text(count > 99 ? '99+' : '$count'),
+        child: Icon(icon),
       ),
     );
   }
@@ -124,9 +213,7 @@ class _MenuPill extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       shape: StadiumBorder(
-        side: BorderSide(
-          color: active ? Colors.transparent : AppColors.border,
-        ),
+        side: BorderSide(color: active ? Colors.transparent : AppColors.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(

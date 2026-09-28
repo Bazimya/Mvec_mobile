@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../models/cart_item.dart';
+import '../models/product.dart';
 import 'product_detail_page.dart';
 
 class CartPage extends StatefulWidget {
@@ -7,6 +9,11 @@ class CartPage extends StatefulWidget {
   final Function(CartItem) onUpdateQuantity;
   final Function(CartItem) onRemoveItem;
   final VoidCallback onProceedToCheckout;
+  final bool Function(Product)? isWishlisted;
+  final ValueChanged<Product>? onToggleWishlist;
+  final VoidCallback? onOpenWishlist;
+  final ValueChanged<Product>? onAddToCart;
+  final VoidCallback? onOpenCart;
 
   const CartPage({
     super.key,
@@ -14,6 +21,11 @@ class CartPage extends StatefulWidget {
     required this.onUpdateQuantity,
     required this.onRemoveItem,
     required this.onProceedToCheckout,
+    this.isWishlisted,
+    this.onToggleWishlist,
+    this.onOpenWishlist,
+    this.onAddToCart,
+    this.onOpenCart,
   });
 
   @override
@@ -126,7 +138,14 @@ class _CartPageState extends State<CartPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => ProductDetailPage(product: product),
+                  builder: (_) => ProductDetailPage(
+                    product: product,
+                    isWishlisted: widget.isWishlisted?.call(product) ?? false,
+                    onToggleWishlist: widget.onToggleWishlist,
+                    onOpenWishlist: widget.onOpenWishlist,
+                    onAddToCart: widget.onAddToCart,
+                    onOpenCart: widget.onOpenCart,
+                  ),
                 ),
               );
             },
@@ -283,6 +302,7 @@ class _CartPageState extends State<CartPage> {
     }
 
     widget.onRemoveItem(item);
+    setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Item removed from cart'),
@@ -299,7 +319,7 @@ class _CartPageState extends State<CartPage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, -3),
           ),
@@ -319,11 +339,7 @@ class _CartPageState extends State<CartPage> {
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Divider(),
             ),
-            _buildSummaryRow(
-              'Total',
-              total,
-              isTotal: true,
-            ),
+            _buildSummaryRow('Total', total, isTotal: true),
             const SizedBox(height: 16),
 
             // Proceed to Checkout Button
@@ -344,10 +360,7 @@ class _CartPageState extends State<CartPage> {
                 ),
                 child: const Text(
                   'Proceed to Checkout',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),

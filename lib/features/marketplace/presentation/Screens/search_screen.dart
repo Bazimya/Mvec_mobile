@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../data/models/product_model.dart';
 import '../providers/home_provider.dart';
 import '../Widgets/product_card.dart';
+import 'product_navigation.dart';
 
 /// Search tab: free-text search across the full product catalog.
 class SearchScreen extends StatefulWidget {
@@ -86,9 +87,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       product: product,
                       onTap: () {
                         context.read<HomeProvider>().addRecentlyViewed(product);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${product.name} selected')),
-                        );
+                        openProductDetails(context, product);
                       },
                     );
                   },

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/utils/app_theme.dart';
 import '../providers/home_provider.dart';
 import '../Widgets/product_card.dart';
+import 'product_navigation.dart';
 
 /// Deals tab: every discounted/promoted product in the catalog.
 class DealsScreen extends StatelessWidget {
@@ -46,9 +47,7 @@ class DealsScreen extends StatelessWidget {
                       product: product,
                       onTap: () {
                         context.read<HomeProvider>().addRecentlyViewed(product);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${product.name} deal opened')),
-                        );
+                        openProductDetails(context, product);
                       },
                     );
                   },

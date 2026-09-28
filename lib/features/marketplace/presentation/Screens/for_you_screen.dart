@@ -5,6 +5,7 @@ import '../../../../core/utils/app_theme.dart';
 import '../../data/models/product_model.dart';
 import '../providers/home_provider.dart';
 import '../Widgets/product_card.dart';
+import 'product_navigation.dart';
 
 /// For You tab: personalized recommendations plus products the user
 /// recently viewed.
@@ -24,8 +25,11 @@ class ForYouScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.auto_awesome_outlined,
-                  color: AppColors.primaryDeep, size: 56),
+              const Icon(
+                Icons.auto_awesome_outlined,
+                color: AppColors.primaryDeep,
+                size: 56,
+              ),
               const SizedBox(height: 12),
               Text(
                 'Nothing personalized for you yet',
@@ -99,9 +103,8 @@ class _Grid extends StatelessWidget {
           width: double.infinity,
           product: product,
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${product.name} opened')),
-            );
+            context.read<HomeProvider>().addRecentlyViewed(product);
+            openProductDetails(context, product);
           },
         );
       },
