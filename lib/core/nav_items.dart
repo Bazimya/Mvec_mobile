@@ -18,9 +18,7 @@ class AdminNav {
   AdminNav._();
 
   static const groups = <NavGroup>[
-    NavGroup('Overview', [
-      NavItem('Overview', '/admin', 'grid'),
-    ]),
+    NavGroup('Overview', [NavItem('Overview', '/admin', 'grid')]),
     NavGroup('Insights', [
       NavItem('Analytics', '/admin/analytics', 'chart'),
       NavItem('Reports', '/admin/reports', 'chart'),
@@ -89,7 +87,10 @@ class AdminNav {
   /// Find the group containing a path (used to auto-open the drawer group).
   static String? groupFor(String path) {
     for (final g in groups) {
-      if (g.items.any((i) => i.path == path || (path.startsWith(i.path) && i.path != '/admin'))) {
+      if (g.items.any(
+        (i) =>
+            i.path == path || (path.startsWith(i.path) && i.path != '/admin'),
+      )) {
         return g.label;
       }
     }
@@ -108,12 +109,18 @@ class VendorNav {
   static const root = '/vendor';
 
   static const groups = <NavGroup>[
-    NavGroup('Overview', [
-      NavItem('Overview', '/vendor', 'grid'),
+    NavGroup('Overview', [NavItem('Overview', '/vendor', 'grid')]),
+    NavGroup('Orders & earnings', [
+      NavItem('Orders', '/vendor/orders', 'cart'),
+      NavItem('Sales & earnings', '/vendor/sales', 'wallet'),
     ]),
     NavGroup('Store', [
       NavItem('Products', '/vendor/products', 'box'),
       NavItem('Store Profile', '/vendor/profile', 'user'),
+      NavItem('Account settings', '/vendor/settings', 'settings'),
+    ]),
+    NavGroup('Communication', [
+      NavItem('Notifications', '/vendor/notifications', 'bell'),
     ]),
   ];
 
@@ -123,14 +130,17 @@ class VendorNav {
   /// the grouped drawer (added by the shell).
   static const bottomNav = <NavItem>[
     NavItem('Overview', '/vendor', 'grid'),
-    NavItem('Products', '/vendor/products', 'box'),
-    NavItem('Profile', '/vendor/profile', 'user'),
+    NavItem('Orders', '/vendor/orders', 'cart'),
+    NavItem('Sales', '/vendor/sales', 'wallet'),
+    NavItem('Settings', '/vendor/settings', 'settings'),
   ];
 
   /// The drawer group containing a path, used to auto-open the right accordion.
   static String? groupFor(String path) {
     for (final g in groups) {
-      if (g.items.any((i) => i.path == path || (path.startsWith(i.path) && i.path != root))) {
+      if (g.items.any(
+        (i) => i.path == path || (path.startsWith(i.path) && i.path != root),
+      )) {
         return g.label;
       }
     }

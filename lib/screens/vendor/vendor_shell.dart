@@ -32,7 +32,8 @@ class _VendorShellState extends ConsumerState<VendorShell> {
   @override
   void initState() {
     super.initState();
-    _openGroup = VendorNav.groupFor(widget.path) ?? VendorNav.groups.first.label;
+    _openGroup =
+        VendorNav.groupFor(widget.path) ?? VendorNav.groups.first.label;
   }
 
   @override
@@ -114,7 +115,12 @@ class _VendorShellState extends ConsumerState<VendorShell> {
               ),
               child: Row(
                 children: [
-                  MvIcon('search', size: 16, color: isDark ? MvColors.darkMuted : const Color(0xFF9AA5AA)),
+                  MvIcon(
+                    'search',
+                    size: 16,
+                    color:
+                        isDark ? MvColors.darkMuted : const Color(0xFF9AA5AA),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
@@ -128,7 +134,10 @@ class _VendorShellState extends ConsumerState<VendorShell> {
                         hintText: 'Search products…',
                         hintStyle: TextStyle(
                           fontSize: 13,
-                          color: isDark ? MvColors.darkMuted : const Color(0xFF9AA5AA),
+                          color:
+                              isDark
+                                  ? MvColors.darkMuted
+                                  : const Color(0xFF9AA5AA),
                         ),
                       ),
                     ),
@@ -143,12 +152,12 @@ class _VendorShellState extends ConsumerState<VendorShell> {
             tooltip: 'Toggle theme',
           ),
           IconButton(
-            onPressed: () => showMvSnack(context, 'No new notifications'),
+            onPressed: () => context.go('/vendor/notifications'),
             tooltip: 'Notifications',
             icon: MvIcon('bell', color: ink),
           ),
           InkWell(
-            onTap: () => context.go('/vendor/profile'),
+            onTap: () => context.go('/vendor/settings'),
             borderRadius: BorderRadius.circular(17),
             child: Container(
               width: 32,
@@ -299,9 +308,10 @@ class _VendorShellState extends ConsumerState<VendorShell> {
   Widget _group(NavGroup group, bool isDark) {
     final open = _openGroup == group.label;
     final hasActive = group.items.any((i) => _isActive(i.path));
-    final fg = hasActive
-        ? MvColors.primaryDeep
-        : (isDark ? const Color(0xFFB9CBD3) : const Color(0xFF4C5A62));
+    final fg =
+        hasActive
+            ? MvColors.primaryDeep
+            : (isDark ? const Color(0xFFB9CBD3) : const Color(0xFF4C5A62));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -339,13 +349,17 @@ class _VendorShellState extends ConsumerState<VendorShell> {
 
   Widget _item(NavItem item, bool isDark, {bool indent = false}) {
     final active = _isActive(item.path);
-    final fg = active
-        ? MvColors.primaryDeep
-        : (isDark ? MvColors.darkMuted : const Color(0xFF6B7780));
+    final fg =
+        active
+            ? MvColors.primaryDeep
+            : (isDark ? MvColors.darkMuted : const Color(0xFF6B7780));
     return Padding(
       padding: EdgeInsets.fromLTRB(indent ? 12 : 0, 0, 0, 1),
       child: Material(
-        color: active ? (isDark ? MvColors.darkSurface2 : MvColors.metricIconBg) : Colors.transparent,
+        color:
+            active
+                ? (isDark ? MvColors.darkSurface2 : MvColors.metricIconBg)
+                : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
@@ -379,9 +393,17 @@ class _VendorShellState extends ConsumerState<VendorShell> {
     );
   }
 
-  Widget _bottomLink(String label, String icon, VoidCallback onTap, {bool danger = false}) {
+  Widget _bottomLink(
+    String label,
+    String icon,
+    VoidCallback onTap, {
+    bool danger = false,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final fg = danger ? MvColors.dangerIcon : (isDark ? MvColors.darkMuted : const Color(0xFF6B7780));
+    final fg =
+        danger
+            ? MvColors.dangerIcon
+            : (isDark ? MvColors.darkMuted : const Color(0xFF6B7780));
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 1),
       child: Material(
@@ -395,7 +417,14 @@ class _VendorShellState extends ConsumerState<VendorShell> {
               children: [
                 MvIcon(icon, size: 16, color: fg),
                 const SizedBox(width: 12),
-                Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: fg)),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: fg,
+                  ),
+                ),
               ],
             ),
           ),
@@ -417,7 +446,8 @@ class _VendorShellState extends ConsumerState<VendorShell> {
         top: false,
         child: Row(
           children: [
-            for (final item in VendorNav.bottomNav) Expanded(child: _bottomItem(item, isDark)),
+            for (final item in VendorNav.bottomNav)
+              Expanded(child: _bottomItem(item, isDark)),
             Expanded(child: _bottomMore(isDark)),
           ],
         ),
@@ -427,7 +457,10 @@ class _VendorShellState extends ConsumerState<VendorShell> {
 
   Widget _bottomItem(NavItem item, bool isDark) {
     final active = _isActive(item.path);
-    final fg = active ? Colors.white : (isDark ? MvColors.darkMuted : const Color(0xFF6B7780));
+    final fg =
+        active
+            ? Colors.white
+            : (isDark ? MvColors.darkMuted : const Color(0xFF6B7780));
     return InkWell(
       onTap: () => context.go(item.path),
       borderRadius: BorderRadius.circular(8),
@@ -473,7 +506,14 @@ class _VendorShellState extends ConsumerState<VendorShell> {
           children: [
             MvIcon('menu', size: 18, color: fg),
             const SizedBox(height: 3),
-            Text('More', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: fg)),
+            Text(
+              'More',
+              style: TextStyle(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w600,
+                color: fg,
+              ),
+            ),
           ],
         ),
       ),
@@ -481,7 +521,8 @@ class _VendorShellState extends ConsumerState<VendorShell> {
   }
 
   bool _isActive(String path) =>
-      widget.path == path || (widget.path.startsWith(path) && path != VendorNav.root);
+      widget.path == path ||
+      (widget.path.startsWith(path) && path != VendorNav.root);
 }
 
 extension _RotateX on Widget {
