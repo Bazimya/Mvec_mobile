@@ -101,7 +101,7 @@ class _AffiliateSettingsScreenState extends ConsumerState<AffiliateSettingsScree
           Padding(
             padding: const EdgeInsets.only(bottom: 14),
             child: DropdownButtonFormField<String>(
-              value: _language,
+              initialValue: _language,
               decoration: const InputDecoration(labelText: 'Language'),
               items: const [
                 DropdownMenuItem(value: 'English', child: Text('English')),

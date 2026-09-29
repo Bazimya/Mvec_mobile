@@ -183,7 +183,7 @@ class _AffiliatePayoutsScreenState extends ConsumerState<AffiliatePayoutsScreen>
                 ),
                 const SizedBox(height: 14),
                 DropdownButtonFormField<String>(
-                  value: method,
+                  initialValue: method,
                   isExpanded: true,
                   decoration: const InputDecoration(labelText: 'Payment method'),
                   items: [for (final m in kAffiliatePayoutMethods) DropdownMenuItem(value: m.value, child: Text(m.label))],

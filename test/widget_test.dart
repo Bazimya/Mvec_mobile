@@ -148,14 +148,12 @@ void main() {
       expect(roleHome(_user('super_admin')), '/admin');
     });
 
-    test('buyer, vendor and supplier land on the home feed', () {
-      for (final role in ['buyer', 'vendor', 'supplier']) {
     test('vendor goes to the vendor portal', () {
       expect(roleHome(_user('vendor')), '/vendor');
     });
 
-    test('buyer, supplier and affiliate land on the home feed', () {
-      for (final role in ['buyer', 'supplier', 'affiliate']) {
+    test('buyer and supplier land on the home feed', () {
+      for (final role in ['buyer', 'supplier']) {
         expect(roleHome(_user(role)), '/home', reason: role);
       }
       expect(roleHome(_user('affiliate')), '/affiliate');

@@ -107,6 +107,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         // Only affiliates may enter the affiliate center.
         if (loc.startsWith('/affiliate') && user.userType != 'affiliate') {
           return '/home';
+        }
         // The vendor portal is the vendor's own landing area; everyone else is
         // sent to their own home rather than shown a vendor console.
         if (loc.startsWith('/vendor') && user.userType != 'vendor') {
@@ -152,53 +153,83 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/home', builder: (_, __) => const MainNavigationScreen()),
       GoRoute(
         path: '/affiliate',
-        builder: (context, state) =>
-            const AffiliateShell(path: '/affiliate', child: AffiliateDashboardScreen()),
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate',
+              child: AffiliateDashboardScreen(),
+            ),
       ),
       GoRoute(
         path: '/affiliate/profile',
-        builder: (context, state) =>
-            const AffiliateShell(path: '/affiliate/profile', child: AffiliateProfileScreen()),
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate/profile',
+              child: AffiliateProfileScreen(),
+            ),
       ),
       GoRoute(
         path: '/affiliate/settings',
-        builder: (context, state) =>
-            const AffiliateShell(path: '/affiliate/settings', child: AffiliateSettingsScreen()),
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate/settings',
+              child: AffiliateSettingsScreen(),
+            ),
       ),
       GoRoute(
         path: '/affiliate/products',
-        builder: (context, state) =>
-            const AffiliateShell(path: '/affiliate/products', child: AffiliateProductsScreen()),
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate/products',
+              child: AffiliateProductsScreen(),
+            ),
       ),
       GoRoute(
         path: '/affiliate/campaigns',
-        builder: (context, state) =>
-            const AffiliateShell(path: '/affiliate/campaigns', child: AffiliateCampaignsScreen()),
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate/campaigns',
+              child: AffiliateCampaignsScreen(),
+            ),
       ),
       GoRoute(
         path: '/affiliate/links',
-        builder: (context, state) =>
-            const AffiliateShell(path: '/affiliate/links', child: AffiliateLinksScreen()),
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate/links',
+              child: AffiliateLinksScreen(),
+            ),
       ),
       GoRoute(
         path: '/affiliate/stats',
-        builder: (context, state) =>
-            const AffiliateShell(path: '/affiliate/stats', child: AffiliateStatsScreen()),
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate/stats',
+              child: AffiliateStatsScreen(),
+            ),
       ),
       GoRoute(
         path: '/affiliate/earnings',
-        builder: (context, state) =>
-            const AffiliateShell(path: '/affiliate/earnings', child: AffiliateEarningsScreen()),
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate/earnings',
+              child: AffiliateEarningsScreen(),
+            ),
       ),
       GoRoute(
         path: '/affiliate/payouts',
-        builder: (context, state) =>
-            const AffiliateShell(path: '/affiliate/payouts', child: AffiliatePayoutsScreen()),
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate/payouts',
+              child: AffiliatePayoutsScreen(),
+            ),
       ),
       GoRoute(
         path: '/affiliate/notifications',
-        builder: (context, state) =>
-            const AffiliateShell(path: '/affiliate/notifications', child: AffiliateNotificationsScreen()),
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate/notifications',
+              child: AffiliateNotificationsScreen(),
+            ),
       ),
       GoRoute(
         path: '/admin',

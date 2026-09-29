@@ -125,37 +125,24 @@ class AuthController extends Notifier<AuthState> {
         );
         return false;
       }
-      final wantsAdmin = identity.toLowerCase().contains('admin');
-      final wantsAffiliate = identity.toLowerCase().contains('affiliate');
-      state = AuthState(
-        session: AuthSession(
-          token: 'demo-token',
-          user: wantsAdmin
-              ? _demoUser
-              : wantsAffiliate
-                  ? UserRecord(
-                      id: 'demo-affiliate',
-                      fullname: 'Demo Affiliate',
-                      email: identity,
-                      role: 'affiliate',
-                      status: 'active',
-                    )
-                  : UserRecord(
-                      id: 'demo-buyer',
-                      fullname: 'Demo Buyer',
-                      email: identity,
-                      role: 'buyer',
-                      status: 'active',
-                    ),
       final normalizedIdentity = identity.toLowerCase();
       final wantsAdmin = normalizedIdentity.contains('admin');
-      final wantsVendor = !wantsAdmin && normalizedIdentity.contains('vendor');
+      final wantsAffiliate = normalizedIdentity.contains('affiliate');
+      final wantsVendor = normalizedIdentity.contains('vendor');
       state = AuthState(
         session: AuthSession(
           token: 'demo-token',
           user:
               wantsAdmin
                   ? _demoUser
+                  : wantsAffiliate
+                  ? UserRecord(
+                    id: 'demo-affiliate',
+                    fullname: 'Demo Affiliate',
+                    email: identity,
+                    role: 'affiliate',
+                    status: 'active',
+                  )
                   : wantsVendor
                   ? UserRecord(
                     id: 'demo-vendor',
