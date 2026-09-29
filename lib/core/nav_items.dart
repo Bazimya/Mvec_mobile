@@ -96,3 +96,44 @@ class AdminNav {
     return null;
   }
 }
+
+/// Vendor portal navigation.
+///
+/// Same shape as [AdminNav] (accordion groups + mobile bottom bar) so the
+/// vendor shell can be a drop-in mirror of the admin shell, with every path
+/// rooted at `/vendor`.
+class VendorNav {
+  VendorNav._();
+
+  static const root = '/vendor';
+
+  static const groups = <NavGroup>[
+    NavGroup('Overview', [
+      NavItem('Overview', '/vendor', 'grid'),
+    ]),
+    NavGroup('Store', [
+      NavItem('Products', '/vendor/products', 'box'),
+      NavItem('Store Profile', '/vendor/profile', 'user'),
+    ]),
+  ];
+
+  static List<NavItem> get all => [for (final g in groups) ...g.items];
+
+  /// Primary items for the mobile bottom bar, plus a "More" entry that opens
+  /// the grouped drawer (added by the shell).
+  static const bottomNav = <NavItem>[
+    NavItem('Overview', '/vendor', 'grid'),
+    NavItem('Products', '/vendor/products', 'box'),
+    NavItem('Profile', '/vendor/profile', 'user'),
+  ];
+
+  /// The drawer group containing a path, used to auto-open the right accordion.
+  static String? groupFor(String path) {
+    for (final g in groups) {
+      if (g.items.any((i) => i.path == path || (path.startsWith(i.path) && i.path != root))) {
+        return g.label;
+      }
+    }
+    return null;
+  }
+}

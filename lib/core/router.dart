@@ -48,6 +48,10 @@ import '../screens/users/users_screen.dart';
 import '../screens/vendors/vendors_screen.dart';
 import '../screens/commissions/commissions_screen.dart';
 import '../screens/acquisitions/acquisitions_screen.dart';
+import '../screens/vendor/vendor_shell.dart';
+import '../screens/vendor/vendor_overview_screen.dart';
+import '../screens/vendor/vendor_products_screen.dart';
+import '../screens/vendor/vendor_profile_screen.dart';
 
 /// Routes that a signed-in user must never stay on.
 const _publicAuthPaths = <String>[
@@ -84,6 +88,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         // Only super admins may enter the control center.
         if (loc.startsWith('/admin') && user.userType != 'super_admin') {
           return '/home';
+        }
+        // The vendor portal is the vendor's own landing area; everyone else is
+        // sent to their own home rather than shown a vendor console.
+        if (loc.startsWith('/vendor') && user.userType != 'vendor') {
+          return roleHome(user);
         }
         return null;
       }
@@ -320,6 +329,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/search',
         builder: (context, state) =>
             const AdminShell(path: '/admin/search', child: SearchScreen()),
+      ),
+
+      // ---------- Vendor portal ----------
+      // Every vendor route is wrapped in the vendor shell, which mirrors the
+      // admin shell's layout with the `VendorNav` accordion + bottom bar.
+      GoRoute(
+        path: '/vendor',
+        builder: (context, state) =>
+            const VendorShell(path: '/vendor', child: VendorOverviewScreen()),
+      ),
+      GoRoute(
+        path: '/vendor/products',
+        builder: (context, state) =>
+            const VendorShell(path: '/vendor/products', child: VendorProductsScreen()),
+      ),
+      GoRoute(
+        path: '/vendor/profile',
+        builder: (context, state) =>
+            const VendorShell(path: '/vendor/profile', child: VendorProfileScreen()),
       ),
     ],
   );

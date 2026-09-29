@@ -313,6 +313,8 @@ String roleHome(UserRecord user) {
   switch (user.userType) {
     case 'super_admin':
       return '/admin';
+    case 'vendor':
+      return '/vendor';
     default:
       return '/home';
   }

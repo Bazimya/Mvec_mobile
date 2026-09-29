@@ -140,8 +140,12 @@ void main() {
       expect(roleHome(_user('super_admin')), '/admin');
     });
 
-    test('buyer, vendor, supplier and affiliate land on the home feed', () {
-      for (final role in ['buyer', 'vendor', 'supplier', 'affiliate']) {
+    test('vendor goes to the vendor portal', () {
+      expect(roleHome(_user('vendor')), '/vendor');
+    });
+
+    test('buyer, supplier and affiliate land on the home feed', () {
+      for (final role in ['buyer', 'supplier', 'affiliate']) {
         expect(roleHome(_user(role)), '/home', reason: role);
       }
     });
@@ -291,6 +295,29 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
 
       expect(find.text('SUPER ADMIN DASHBOARD'), findsOneWidget);
+      expect(find.byType(MainNavigationScreen), findsNothing);
+      expect(find.text('Welcome back'), findsNothing);
+    });
+
+    testWidgets('a vendor lands on the vendor portal', (tester) async {
+      // Like the admin dashboard, the portal loads live providers, so pump a
+      // bounded number of frames instead of pumpAndSettle.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authControllerProvider.overrideWith(
+              () => _StubAuthController(_user('vendor')),
+            ),
+          ],
+          child: const MvecApp(),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      // "VENDOR PORTAL" is the shell's top-bar eyebrow and the overview
+      // header, so it renders more than once.
+      expect(find.text('VENDOR PORTAL'), findsWidgets);
       expect(find.byType(MainNavigationScreen), findsNothing);
       expect(find.text('Welcome back'), findsNothing);
     });
