@@ -125,18 +125,27 @@ class AuthController extends Notifier<AuthState> {
         return false;
       }
       final wantsAdmin = identity.toLowerCase().contains('admin');
+      final wantsAffiliate = identity.toLowerCase().contains('affiliate');
       state = AuthState(
         session: AuthSession(
           token: 'demo-token',
           user: wantsAdmin
               ? _demoUser
-              : UserRecord(
-                  id: 'demo-buyer',
-                  fullname: 'Demo Buyer',
-                  email: identity,
-                  role: 'buyer',
-                  status: 'active',
-                ),
+              : wantsAffiliate
+                  ? UserRecord(
+                      id: 'demo-affiliate',
+                      fullname: 'Demo Affiliate',
+                      email: identity,
+                      role: 'affiliate',
+                      status: 'active',
+                    )
+                  : UserRecord(
+                      id: 'demo-buyer',
+                      fullname: 'Demo Buyer',
+                      email: identity,
+                      role: 'buyer',
+                      status: 'active',
+                    ),
         ),
       );
       return true;
@@ -313,6 +322,8 @@ String roleHome(UserRecord user) {
   switch (user.userType) {
     case 'super_admin':
       return '/admin';
+    case 'affiliate':
+      return '/affiliate';
     default:
       return '/home';
   }
