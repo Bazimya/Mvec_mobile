@@ -3,6 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/marketplace/presentation/Screens/main_navigation.dart';
+import '../features/affiliate/presentation/screens/affiliate_dashboard_screen.dart';
+import '../features/affiliate/presentation/screens/affiliate_profile_screen.dart';
+import '../features/affiliate/presentation/screens/affiliate_settings_screen.dart';
+import '../features/affiliate/presentation/screens/affiliate_products_screen.dart';
+import '../features/affiliate/presentation/screens/affiliate_campaigns_screen.dart';
+import '../features/affiliate/presentation/screens/affiliate_links_screen.dart';
+import '../features/affiliate/presentation/screens/affiliate_stats_screen.dart';
+import '../features/affiliate/presentation/screens/affiliate_earnings_screen.dart';
+import '../features/affiliate/presentation/screens/affiliate_payouts_screen.dart';
+import '../features/affiliate/presentation/screens/affiliate_notifications_screen.dart';
+import '../features/affiliate/presentation/shell/affiliate_shell.dart';
 import '../providers/auth_provider.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -93,6 +104,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (loc.startsWith('/admin') && user.userType != 'super_admin') {
           return '/home';
         }
+        // Only affiliates may enter the affiliate center.
+        if (loc.startsWith('/affiliate') && user.userType != 'affiliate') {
+          return '/home';
         // The vendor portal is the vendor's own landing area; everyone else is
         // sent to their own home rather than shown a vendor console.
         if (loc.startsWith('/vendor') && user.userType != 'vendor') {
@@ -136,6 +150,56 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const ResetPasswordScreen(),
       ),
       GoRoute(path: '/home', builder: (_, __) => const MainNavigationScreen()),
+      GoRoute(
+        path: '/affiliate',
+        builder: (context, state) =>
+            const AffiliateShell(path: '/affiliate', child: AffiliateDashboardScreen()),
+      ),
+      GoRoute(
+        path: '/affiliate/profile',
+        builder: (context, state) =>
+            const AffiliateShell(path: '/affiliate/profile', child: AffiliateProfileScreen()),
+      ),
+      GoRoute(
+        path: '/affiliate/settings',
+        builder: (context, state) =>
+            const AffiliateShell(path: '/affiliate/settings', child: AffiliateSettingsScreen()),
+      ),
+      GoRoute(
+        path: '/affiliate/products',
+        builder: (context, state) =>
+            const AffiliateShell(path: '/affiliate/products', child: AffiliateProductsScreen()),
+      ),
+      GoRoute(
+        path: '/affiliate/campaigns',
+        builder: (context, state) =>
+            const AffiliateShell(path: '/affiliate/campaigns', child: AffiliateCampaignsScreen()),
+      ),
+      GoRoute(
+        path: '/affiliate/links',
+        builder: (context, state) =>
+            const AffiliateShell(path: '/affiliate/links', child: AffiliateLinksScreen()),
+      ),
+      GoRoute(
+        path: '/affiliate/stats',
+        builder: (context, state) =>
+            const AffiliateShell(path: '/affiliate/stats', child: AffiliateStatsScreen()),
+      ),
+      GoRoute(
+        path: '/affiliate/earnings',
+        builder: (context, state) =>
+            const AffiliateShell(path: '/affiliate/earnings', child: AffiliateEarningsScreen()),
+      ),
+      GoRoute(
+        path: '/affiliate/payouts',
+        builder: (context, state) =>
+            const AffiliateShell(path: '/affiliate/payouts', child: AffiliatePayoutsScreen()),
+      ),
+      GoRoute(
+        path: '/affiliate/notifications',
+        builder: (context, state) =>
+            const AffiliateShell(path: '/affiliate/notifications', child: AffiliateNotificationsScreen()),
+      ),
       GoRoute(
         path: '/admin',
         builder:
