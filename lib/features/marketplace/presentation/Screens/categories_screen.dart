@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/theme.dart';
 import '../../../../core/utils/app_theme.dart';
 import '../../data/models/category_model.dart';
 import '../providers/home_provider.dart';
@@ -76,21 +77,22 @@ class _CategoryCard extends StatelessWidget {
             SizedBox(
               width: 72,
               child: imageUrl.isEmpty
-                  ? const Icon(
-                      Icons.category_outlined,
-                      color: AppColors.primaryDeep,
-                      size: 32,
-                    )
+                  ? Icon(
+                    Icons.category_outlined,
+                    color: context.mv.accentDeep,
+                    size: 32,
+                  )
                   : CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (context, _) => const SizedBox.shrink(),
-                      errorWidget: (context, _, _) => const Icon(
-                        Icons.category_outlined,
-                        color: AppColors.primaryDeep,
-                        size: 32,
-                      ),
-                    ),
+                    imageUrl: imageUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (context, _) => const SizedBox.shrink(),
+                    errorWidget:
+                        (context, _, _) => Icon(
+                          Icons.category_outlined,
+                          color: context.mv.accentDeep,
+                          size: 32,
+                        ),
+                  ),
             ),
             Expanded(
               child: Padding(

@@ -82,7 +82,9 @@ class _AdminShellState extends ConsumerState<AdminShell> {
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
         color: isDark ? MvColors.darkSurface : Colors.white,
-        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
       ),
       child: Row(
         children: [
@@ -99,11 +101,18 @@ class _AdminShellState extends ConsumerState<AdminShell> {
               decoration: BoxDecoration(
                 color: isDark ? MvColors.darkSurface2 : const Color(0xFFF7FAFB),
                 borderRadius: BorderRadius.circular(7),
-                border: Border.all(color: isDark ? MvColors.darkBorder : const Color(0xFFE0E5E8)),
+                border: Border.all(
+                  color: isDark ? MvColors.darkBorder : const Color(0xFFE0E5E8),
+                ),
               ),
               child: Row(
                 children: [
-                  MvIcon('search', size: 16, color: isDark ? MvColors.darkMuted : const Color(0xFF9AA5AA)),
+                  MvIcon(
+                    'search',
+                    size: 16,
+                    color:
+                        isDark ? MvColors.darkMuted : const Color(0xFF9AA5AA),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
@@ -114,7 +123,13 @@ class _AdminShellState extends ConsumerState<AdminShell> {
                         isDense: true,
                         border: InputBorder.none,
                         hintText: 'Search…',
-                        hintStyle: TextStyle(fontSize: 13, color: isDark ? MvColors.darkMuted : const Color(0xFF9AA5AA)),
+                        hintStyle: TextStyle(
+                          fontSize: 13,
+                          color:
+                              isDark
+                                  ? MvColors.darkMuted
+                                  : const Color(0xFF9AA5AA),
+                        ),
                       ),
                     ),
                   ),
@@ -123,10 +138,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
             ),
           ),
           IconButton(
-            onPressed: () {
-              final t = ref.read(themeModeProvider);
-              ref.read(themeModeProvider.notifier).state = t == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
-            },
+            onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
             icon: MvIcon(isDark ? 'sun' : 'moon', color: ink),
             tooltip: 'Toggle theme',
           ),
@@ -140,13 +152,23 @@ class _AdminShellState extends ConsumerState<AdminShell> {
                 Positioned(
                   top: -3,
                   right: -4,
-child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  height: 16,
-                  constraints: const BoxConstraints(minWidth: 16),
-                  alignment: Alignment.center,
-                    decoration: const BoxDecoration(color: MvColors.badgeRed, borderRadius: BorderRadius.all(Radius.circular(9))),
-                    child: const Text('9+', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white)),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    height: 16,
+                    constraints: const BoxConstraints(minWidth: 16),
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: MvColors.badgeRed,
+                      borderRadius: BorderRadius.all(Radius.circular(9)),
+                    ),
+                    child: const Text(
+                      '9+',
+                      style: TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -158,9 +180,19 @@ child: Container(
             child: Container(
               width: 32,
               height: 32,
-              decoration: const BoxDecoration(gradient: MvColors.gradient, shape: BoxShape.circle),
+              decoration: const BoxDecoration(
+                gradient: MvColors.gradient,
+                shape: BoxShape.circle,
+              ),
               alignment: Alignment.center,
-              child: Text(initials(name), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white)),
+              child: Text(
+                initials(name),
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
         ],
@@ -190,14 +222,22 @@ child: Container(
                           fontSize: 27,
                           fontWeight: FontWeight.w800,
                           fontFamily: 'Manrope',
-                          foreground: Paint()
-                            ..shader = MvColors.gradient.createShader(const Rect.fromLTWH(0, 0, 120, 30)),
+                          foreground:
+                              Paint()
+                                ..shader = MvColors.gradient.createShader(
+                                  const Rect.fromLTWH(0, 0, 120, 30),
+                                ),
                         ),
                       ),
                       const SizedBox(width: 10),
                       const Text(
                         'ADMIN CONTROL',
-                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1.6, color: MvColors.muted),
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.6,
+                          color: MvColors.muted,
+                        ),
                       ),
                     ],
                   ),
@@ -207,18 +247,41 @@ child: Container(
                       Container(
                         width: 40,
                         height: 40,
-                        decoration: const BoxDecoration(gradient: MvColors.gradient, shape: BoxShape.circle),
+                        decoration: const BoxDecoration(
+                          gradient: MvColors.gradient,
+                          shape: BoxShape.circle,
+                        ),
                         alignment: Alignment.center,
-                        child: Text(initials(name), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
+                        child: Text(
+                          initials(name),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
+                            Text(
+                              name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                             const SizedBox(height: 3),
-                            Text('Super Administrator', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, color: muted)),
+                            Text(
+                              'Super Administrator',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 10, color: muted),
+                            ),
                           ],
                         ),
                       ),
@@ -265,9 +328,10 @@ child: Container(
   Widget _group(NavGroup group, bool isDark) {
     final open = _openGroup == group.label;
     final hasActive = group.items.any((i) => _isActive(i.path));
-    final fg = hasActive
-        ? MvColors.primaryDeep
-        : (isDark ? const Color(0xFFB9CBD3) : const Color(0xFF4C5A62));
+    final fg =
+        hasActive
+            ? MvColors.primaryDeep
+            : (isDark ? const Color(0xFFB9CBD3) : const Color(0xFF4C5A62));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -283,32 +347,40 @@ child: Container(
                   Expanded(
                     child: Text(
                       group.label.toUpperCase(),
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: .4, color: fg),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: .4,
+                        color: fg,
+                      ),
                     ),
                   ),
                   MvIcon('arrow', size: 14, color: fg) //
-                      .rotate(open ? 90 : 0),
+                  .rotate(open ? 90 : 0),
                 ],
               ),
             ),
           ),
         ),
         if (open)
-          for (final item in group.items)
-            _item(item, isDark, indent: true),
+          for (final item in group.items) _item(item, isDark, indent: true),
       ],
     );
   }
 
   Widget _item(NavItem item, bool isDark, {bool indent = false}) {
     final active = _isActive(item.path);
-    final fg = active
-        ? MvColors.primaryDeep
-        : (isDark ? MvColors.darkMuted : const Color(0xFF6B7780));
+    final fg =
+        active
+            ? MvColors.primaryDeep
+            : (isDark ? MvColors.darkMuted : const Color(0xFF6B7780));
     return Padding(
       padding: EdgeInsets.fromLTRB(indent ? 12 : 0, 0, 0, 1),
       child: Material(
-        color: active ? (isDark ? MvColors.darkSurface2 : MvColors.metricIconBg) : Colors.transparent,
+        color:
+            active
+                ? (isDark ? MvColors.darkSurface2 : MvColors.metricIconBg)
+                : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
@@ -327,7 +399,11 @@ child: Container(
                     item.label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 13, fontWeight: active ? FontWeight.w800 : FontWeight.w600, color: fg),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+                      color: fg,
+                    ),
                   ),
                 ),
               ],
@@ -338,9 +414,17 @@ child: Container(
     );
   }
 
-  Widget _bottomLink(String label, String icon, VoidCallback onTap, {bool danger = false}) {
+  Widget _bottomLink(
+    String label,
+    String icon,
+    VoidCallback onTap, {
+    bool danger = false,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final fg = danger ? MvColors.dangerIcon : (isDark ? MvColors.darkMuted : const Color(0xFF6B7780));
+    final fg =
+        danger
+            ? MvColors.dangerIcon
+            : (isDark ? MvColors.darkMuted : const Color(0xFF6B7780));
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 1),
       child: Material(
@@ -354,7 +438,14 @@ child: Container(
               children: [
                 MvIcon(icon, size: 16, color: fg),
                 const SizedBox(width: 12),
-                Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: fg)),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: fg,
+                  ),
+                ),
               ],
             ),
           ),
@@ -377,12 +468,8 @@ child: Container(
         child: Row(
           children: [
             for (final item in AdminNav.bottomNav)
-              Expanded(
-                child: _bottomItem(item, isDark),
-              ),
-            Expanded(
-              child: _bottomMore(isDark),
-            ),
+              Expanded(child: _bottomItem(item, isDark)),
+            Expanded(child: _bottomMore(isDark)),
           ],
         ),
       ),
@@ -391,24 +478,38 @@ child: Container(
 
   Widget _bottomItem(NavItem item, bool isDark) {
     final active = _isActive(item.path);
-    final fg = active
-        ? MvColors.primaryDeep
-        : (isDark ? MvColors.darkMuted : const Color(0xFF6B7780));
+    final fg =
+        active
+            ? Colors.white
+            : (isDark ? MvColors.darkMuted : const Color(0xFF6B7780));
     return InkWell(
       onTap: () => context.go(item.path),
       borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            MvIcon(item.icon, size: 18, color: fg),
-            const SizedBox(height: 3),
-            Text(
-              item.label,
-              style: TextStyle(fontSize: 9.5, fontWeight: active ? FontWeight.w800 : FontWeight.w600, color: fg),
-            ),
-          ],
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          decoration: BoxDecoration(
+            color: active ? MvColors.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MvIcon(item.icon, size: 18, color: fg),
+              const SizedBox(height: 3),
+              Text(
+                item.label,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+                  color: fg,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -426,16 +527,25 @@ child: Container(
           children: [
             MvIcon('menu', size: 18, color: fg),
             const SizedBox(height: 3),
-            Text('More', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: fg)),
+            Text(
+              'More',
+              style: TextStyle(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w600,
+                color: fg,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  bool _isActive(String path) => widget.path == path || (widget.path.startsWith(path) && path != '/admin');
+  bool _isActive(String path) =>
+      widget.path == path || (widget.path.startsWith(path) && path != '/admin');
 }
 
 extension _RotateX on Widget {
-  Widget rotate(double deg) => Transform.rotate(angle: deg * 3.141592653589793 / 180, child: this);
+  Widget rotate(double deg) =>
+      Transform.rotate(angle: deg * 3.141592653589793 / 180, child: this);
 }

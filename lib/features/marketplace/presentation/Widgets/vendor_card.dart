@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme.dart';
 import '../../../../core/utils/app_theme.dart';
 import '../../data/models/vendor_model.dart';
 
@@ -52,9 +53,9 @@ class VendorCard extends StatelessWidget {
                               ),
                               if (vendor.isVerified) ...<Widget>[
                                 const SizedBox(width: 4),
-                                const Icon(
+                                Icon(
                                   Icons.verified_rounded,
-                                  color: AppColors.primaryDeep,
+                                  color: context.mv.accentDeep,
                                   size: 16,
                                 ),
                               ],
@@ -69,7 +70,7 @@ class VendorCard extends StatelessWidget {
                               Text(
                                 vendor.rating.toStringAsFixed(1),
                                 style: AppTextStyles.caption(context)
-                                    .copyWith(color: AppColors.textPrimary),
+                                    .copyWith(color: context.mv.text),
                               ),
                             ],
                           ),
@@ -109,26 +110,28 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mv = context.mv;
     return Container(
       width: 46,
       height: 46,
       decoration: BoxDecoration(
-        color: AppColors.soft,
+        color: mv.soft,
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: mv.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: vendor.logoUrl.isEmpty
-          ? const Icon(Icons.storefront_outlined,
-              color: AppColors.primaryDeep, size: 24)
+          ? Icon(Icons.storefront_outlined, color: mv.accentDeep, size: 24)
           : CachedNetworkImage(
               imageUrl: vendor.logoUrl,
               fit: BoxFit.cover,
               placeholder: (context, _) => const SizedBox.shrink(),
-              errorWidget: (context, _, _) => const Icon(
-                  Icons.storefront_outlined,
-                  color: AppColors.primaryDeep,
-                  size: 24),
+              errorWidget:
+                  (context, _, _) => Icon(
+                    Icons.storefront_outlined,
+                    color: mv.accentDeep,
+                    size: 24,
+                  ),
             ),
     );
   }

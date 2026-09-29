@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/theme.dart';
 import '../../../../core/utils/app_theme.dart';
 import '../../data/models/product_model.dart';
 import '../providers/commerce_provider.dart';
@@ -85,7 +86,7 @@ class ProductCard extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: AppTextStyles.caption(context)
-                                      .copyWith(color: AppColors.textPrimary),
+                                      .copyWith(color: context.mv.text),
                                 ),
                               ),
                               const SizedBox(width: 4),
@@ -189,6 +190,7 @@ class _Thumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mv = context.mv;
     return SizedBox(
       height: 100,
       width: double.infinity,
@@ -197,27 +199,27 @@ class _Thumbnail extends StatelessWidget {
         children: [
           if (product.imageUrl.isEmpty)
             Container(
-              color: AppColors.soft,
-              child: const Icon(
+              color: mv.soft,
+              child: Icon(
                 Icons.image_not_supported_outlined,
                 size: 28,
-                color: AppColors.primaryDeep,
+                color: mv.accentDeep,
               ),
             )
           else
             CachedNetworkImage(
               imageUrl: product.imageUrl,
               fit: BoxFit.cover,
-              placeholder: (context, _) =>
-                  const ColoredBox(color: AppColors.soft),
-              errorWidget: (context, _, _) => Container(
-                color: AppColors.soft,
-                child: const Icon(
-                  Icons.image_not_supported_outlined,
-                  size: 28,
-                  color: AppColors.primaryDeep,
-                ),
-              ),
+              placeholder: (context, _) => ColoredBox(color: context.mv.soft),
+              errorWidget:
+                  (context, _, _) => Container(
+                    color: mv.soft,
+                    child: Icon(
+                      Icons.image_not_supported_outlined,
+                      size: 28,
+                      color: mv.accentDeep,
+                    ),
+                  ),
             ),
           if (product.discountPercent > 0)
             Positioned(

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme.dart';
 import '../../../../core/utils/app_theme.dart';
 import '../../data/models/category_model.dart';
 
@@ -53,6 +54,7 @@ class _CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mv = context.mv;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -62,11 +64,11 @@ class _CategoryTile extends StatelessWidget {
             height: 60,
             width: 60,
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: mv.surface,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.border.withValues(alpha: 0.6),
+                  color: mv.shadow,
                   blurRadius: 10,
                   offset: const Offset(0, 3),
                 ),
@@ -74,17 +76,24 @@ class _CategoryTile extends StatelessWidget {
             ),
             clipBehavior: Clip.antiAlias,
             child: category.imageUrl.isEmpty
-                ? const Icon(Icons.category_outlined,
-                    color: AppColors.primaryDeep, size: 28)
+                ? Icon(
+                  Icons.category_outlined,
+                  color: mv.accentDeep,
+                  size: 28,
+                )
                 : CachedNetworkImage(
-                    imageUrl: category.imageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (context, _) => const SizedBox.shrink(),
-                    errorWidget: (context, _, _) => const Center(
-                      child: Icon(Icons.category_outlined,
-                          color: AppColors.primaryDeep, size: 28),
-                    ),
-                  ),
+                  imageUrl: category.imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, _) => const SizedBox.shrink(),
+                  errorWidget:
+                      (context, _, _) => Center(
+                        child: Icon(
+                          Icons.category_outlined,
+                          color: mv.accentDeep,
+                          size: 28,
+                        ),
+                      ),
+                ),
           ),
           const SizedBox(height: 8),
           Text(

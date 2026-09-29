@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/router.dart';
 import 'core/theme.dart';
@@ -16,7 +17,17 @@ import 'features/marketplace/presentation/providers/home_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
-  runApp(const ProviderScope(child: MvecApp()));
+  // Resolved before the first frame so the light/dark preference is already
+  // applied on launch and the app never flashes the wrong theme.
+  final preferences = await SharedPreferences.getInstance();
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(preferences),
+      ],
+      child: const MvecApp(),
+    ),
+  );
 }
 
 class MvecApp extends ConsumerWidget {
@@ -36,8 +47,8 @@ class MvecApp extends ConsumerWidget {
       child: MaterialApp.router(
         title: 'MVEC',
         debugShowCheckedModeBanner: false,
-        theme: buildAppTheme(Brightness.light),
-        darkTheme: buildAppTheme(Brightness.dark),
+        theme: lightAppTheme,
+        darkTheme: darkAppTheme,
         themeMode: themeMode,
         routerConfig: ref.watch(routerProvider),
       ),

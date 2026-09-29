@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme.dart';
 import '../../../../core/utils/app_theme.dart';
 
 /// A single demo order placeholder for the current/past order list.
@@ -109,8 +110,11 @@ class _OrdersList extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.receipt_long_outlined,
-                color: AppColors.textSecondary, size: 56),
+            Icon(
+              Icons.receipt_long_outlined,
+              color: context.mv.textMuted,
+              size: 56,
+            ),
             const SizedBox(height: 12),
             Text(
               activeOnly ? 'No active orders' : 'No past orders yet',
@@ -176,8 +180,11 @@ class _OrderCard extends StatelessWidget {
             const SizedBox(height: 10),
             Row(
               children: [
-                const Icon(Icons.calendar_today_outlined,
-                    color: AppColors.textSecondary, size: 14),
+                Icon(
+                  Icons.calendar_today_outlined,
+                  color: context.mv.textMuted,
+                  size: 14,
+                ),
                 const SizedBox(width: 6),
                 Text(order.date, style: AppTextStyles.caption(context)),
                 const Spacer(),

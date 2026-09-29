@@ -11,7 +11,7 @@ class AppColors {
   AppColors._();
 
   /// `--blue` — the sky blue the app is built around.
-  static const Color primary = MvColors.primary;
+  static const Color primary = MvColors.skyBlue;
   static const Color primaryDark = MvColors.primaryDark;
   static const Color primaryDeep = MvColors.primaryDeep;
   static const Color primaryLight = MvColors.accentLight;
@@ -20,7 +20,7 @@ class AppColors {
   /// `#9ae2fb 0%, #55c9f2 45%, #25addb 100%`.
   static const List<Color> brandGradient = <Color>[
     MvColors.accentLight,
-    MvColors.primary,
+    MvColors.skyBlue,
     MvColors.primaryDark,
   ];
 
@@ -43,50 +43,66 @@ class AppColors {
 class AppTextStyles {
   AppTextStyles._();
 
-  static TextStyle headline(BuildContext context) =>
-      Theme.of(context).textTheme.headlineSmall!.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w700,
-          );
+  static TextStyle headline(BuildContext context) {
+    final mv = context.mv;
+    return Theme.of(context).textTheme.headlineSmall!.copyWith(
+          color: mv.text,
+          fontWeight: FontWeight.w700,
+        );
+  }
 
-  static TextStyle sectionTitle(BuildContext context) =>
-      Theme.of(context).textTheme.titleMedium!.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w700,
-          );
+  static TextStyle sectionTitle(BuildContext context) {
+    final mv = context.mv;
+    return Theme.of(context).textTheme.titleMedium!.copyWith(
+          color: mv.text,
+          fontWeight: FontWeight.w700,
+        );
+  }
 
-  static TextStyle title(BuildContext context) =>
-      Theme.of(context).textTheme.titleMedium!.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w600,
-          );
+  static TextStyle title(BuildContext context) {
+    final mv = context.mv;
+    return Theme.of(context).textTheme.titleMedium!.copyWith(
+          color: mv.text,
+          fontWeight: FontWeight.w600,
+        );
+  }
 
-  static TextStyle body(BuildContext context) =>
-      Theme.of(context).textTheme.bodyMedium!.copyWith(
-            color: AppColors.textPrimary,
-          );
+  static TextStyle body(BuildContext context) {
+    final mv = context.mv;
+    return Theme.of(context).textTheme.bodyMedium!.copyWith(
+          color: mv.text,
+        );
+  }
 
-  static TextStyle bodySecondary(BuildContext context) =>
-      Theme.of(context).textTheme.bodyMedium!.copyWith(
-            color: AppColors.textSecondary,
-          );
+  static TextStyle bodySecondary(BuildContext context) {
+    final mv = context.mv;
+    return Theme.of(context).textTheme.bodyMedium!.copyWith(
+          color: mv.textMuted,
+        );
+  }
 
-  static TextStyle caption(BuildContext context) =>
-      Theme.of(context).textTheme.bodySmall!.copyWith(
-            color: AppColors.textSecondary,
-          );
+  static TextStyle caption(BuildContext context) {
+    final mv = context.mv;
+    return Theme.of(context).textTheme.bodySmall!.copyWith(
+          color: mv.textMuted,
+        );
+  }
 
-  static TextStyle price(BuildContext context) =>
-      Theme.of(context).textTheme.titleMedium!.copyWith(
-        color: AppColors.textPrimary,
-        fontWeight: FontWeight.w700,
-      );
+  static TextStyle price(BuildContext context) {
+    final mv = context.mv;
+    return Theme.of(context).textTheme.titleMedium!.copyWith(
+      color: mv.text,
+      fontWeight: FontWeight.w700,
+    );
+  }
 
-  static TextStyle oldPrice(BuildContext context) =>
-      Theme.of(context).textTheme.bodySmall!.copyWith(
-        color: AppColors.textSecondary,
-        decoration: TextDecoration.lineThrough,
-      );
+  static TextStyle oldPrice(BuildContext context) {
+    final mv = context.mv;
+    return Theme.of(context).textTheme.bodySmall!.copyWith(
+      color: mv.textMuted,
+      decoration: TextDecoration.lineThrough,
+    );
+  }
 }
 
 class AppTheme {

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme.dart';
+import '../core/utils/app_theme.dart';
 import '../models/product.dart';
 
 class ProductDetailPage extends StatefulWidget {
@@ -65,19 +67,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final mv = context.mv;
     final isOutOfStock = product.stock <= 0;
     final isLowStock = product.stock > 0 && product.stock <= 5;
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: mv.page,
       body: CustomScrollView(
         slivers: [
           // AppBar + Product Images
           SliverAppBar(
             expandedHeight: 380,
             pinned: true,
-            backgroundColor: Colors.white,
+            backgroundColor: mv.surface,
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new, size: 20),
@@ -86,7 +88,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             actions: [
               if (widget.onOpenWishlist != null)
                 IconButton(
-                  icon: const Icon(Icons.favorite_border, color: Colors.black),
+                  icon: const Icon(Icons.favorite_border),
                   tooltip: 'Open wishlist',
                   onPressed: widget.onOpenWishlist,
                 ),
@@ -106,12 +108,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             flexibleSpace: FlexibleSpaceBar(
               background: product.images.isEmpty
                   ? Container(
-                      color: Colors.grey[200],
-                      child: const Center(
+                      color: mv.soft,
+                      child: Center(
                         child: Icon(
                           Icons.image_not_supported,
                           size: 80,
-                          color: Colors.grey,
+                          color: mv.textMuted,
                         ),
                       ),
                     )
@@ -131,11 +133,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
-                                  color: Colors.grey[200],
-                                  child: const Icon(
+                                  color: mv.soft,
+                                  child: Icon(
                                     Icons.broken_image,
                                     size: 80,
-                                    color: Colors.grey,
+                                    color: mv.textMuted,
                                   ),
                                 );
                               },
@@ -160,7 +162,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   height: 8,
                                   decoration: BoxDecoration(
                                     color: _currentImageIndex == index
-                                        ? theme.primaryColor
+                                        ? AppColors.primary
                                         : Colors.white.withValues(alpha: 0.7),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
@@ -183,10 +185,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   // Product Name
                   Text(
                     product.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
                       height: 1.3,
+                      color: mv.text,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -197,10 +200,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     children: [
                       Text(
                         '\$${product.price.toStringAsFixed(2)}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
-                          color: theme.primaryColor,
+                          color: AppColors.primary,
                         ),
                       ),
                       if (product.oldPrice != null) ...[
@@ -209,7 +212,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           '\$${product.oldPrice!.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey[500],
+                            color: mv.textMuted,
                             decoration: TextDecoration.lineThrough,
                           ),
                         ),
@@ -237,11 +240,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: isOutOfStock
-                                ? Colors.red
-                                : isLowStock
-                                ? Colors.orange[800]
-                                : Colors.green[700],
+                            color:
+                                isOutOfStock
+                                    ? AppColors.error
+                                    : isLowStock
+                                    ? AppColors.warning
+                                    : AppColors.success,
                           ),
                         ),
                       ),
@@ -253,9 +257,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: mv.surface,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: mv.border),
                     ),
                     child: Row(
                       children: [
@@ -270,8 +274,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               return Container(
                                 width: 50,
                                 height: 50,
-                                color: Colors.grey[200],
-                                child: const Icon(Icons.store),
+                                color: mv.soft,
+                                child: Icon(Icons.store, color: mv.accentDeep),
                               );
                             },
                           ),
@@ -283,9 +287,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             children: [
                               Text(
                                 product.vendor.name,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 15,
+                                  color: mv.text,
                                 ),
                               ),
                               const SizedBox(height: 3),
@@ -301,7 +306,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                     '${product.vendor.rating} • ${product.vendor.totalProducts} products',
                                     style: TextStyle(
                                       fontSize: 13,
-                                      color: Colors.grey[600],
+                                      color: mv.textMuted,
                                     ),
                                   ),
                                 ],
@@ -322,11 +327,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                   // Color Options
                   if (product.colors.isNotEmpty) ...[
-                    const Text(
+                    Text(
                       'Color',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
+                        color: mv.text,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -346,22 +352,20 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: isSelected
-                                  ? theme.primaryColor
-                                  : Colors.white,
+                              color: isSelected ? AppColors.primary : mv.surface,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: isSelected
-                                    ? theme.primaryColor
-                                    : const Color.fromARGB(255, 126, 213, 240),
+                                color:
+                                    isSelected
+                                        ? AppColors.primary
+                                        : mv.border,
                               ),
                             ),
                             child: Text(
                               color,
                               style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : Colors.black87,
+                                color:
+                                    isSelected ? Colors.white : mv.text,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -374,11 +378,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                   // Size Options
                   if (product.sizes.isNotEmpty) ...[
-                    const Text(
+                    Text(
                       'Size',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
+                        color: mv.text,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -398,22 +403,20 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: isSelected
-                                  ? theme.primaryColor
-                                  : Colors.white,
+                              color: isSelected ? AppColors.primary : mv.surface,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: isSelected
-                                    ? theme.primaryColor
-                                    : Colors.grey.shade300,
+                                color:
+                                    isSelected
+                                        ? AppColors.primary
+                                        : mv.border,
                               ),
                             ),
                             child: Text(
                               size,
                               style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : Colors.black87,
+                                color:
+                                    isSelected ? Colors.white : mv.text,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -425,16 +428,20 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ],
 
                   // Quantity
-                  const Text(
+                  Text(
                     'Quantity',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: mv.text,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: mv.surface,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(color: mv.border),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -451,9 +458,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         ),
                         Text(
                           '$_quantity',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
+                            color: mv.text,
                           ),
                         ),
                         IconButton(
@@ -472,9 +480,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   const SizedBox(height: 28),
 
                   // Description
-                  const Text(
+                  Text(
                     'Description',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: mv.text,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -482,7 +494,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     style: TextStyle(
                       fontSize: 15,
                       height: 1.55,
-                      color: Colors.grey[700],
+                      color: mv.textMuted,
                     ),
                   ),
                 ],
@@ -496,10 +508,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: mv.surface,
+          border: Border(top: BorderSide(color: mv.border)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
+              color: mv.shadow,
               blurRadius: 10,
               offset: const Offset(0, -3),
             ),
@@ -560,7 +573,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           );
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.primaryColor,
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(

@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:mvec_mobile/core/theme.dart';
+import 'package:mvec_mobile/core/utils/app_theme.dart';
 import 'package:mvec_mobile/features/marketplace/presentation/Screens/home_screen.dart';
 import 'package:mvec_mobile/features/marketplace/presentation/Screens/main_navigation.dart';
 import 'package:mvec_mobile/features/marketplace/presentation/providers/commerce_provider.dart';
@@ -76,6 +79,27 @@ Future<void> _pumpMarketplace(WidgetTester tester) async {
   await _pumpSignedIn(tester, 'buyer');
   expect(find.byType(MainNavigationScreen), findsOneWidget);
 }
+
+/// Colour the bottom-nav icon for [icon] is currently painted in.
+Color? _iconColor(WidgetTester tester, IconData icon) =>
+    tester.widget<Icon>(find.byIcon(icon)).color;
+
+/// Effective colour of a bottom-nav [label], resolved through the animated
+/// default text style the bar applies. Scoped to the bar because the active
+/// tab's screen can repeat the same word as its own heading.
+Color? _labelColor(WidgetTester tester, String label) =>
+    DefaultTextStyle.of(
+      tester.element(
+        find.descendant(
+          of: find.byKey(const ValueKey<String>('bottom-nav-bar')),
+          matching: find.text(label),
+        ),
+      ),
+    ).style.color;
+
+/// Background the marketplace scaffold is currently filled with.
+Color? _scaffoldBackground(WidgetTester tester) =>
+    tester.widget<Scaffold>(find.byType(Scaffold).first).backgroundColor;
 
 void main() {
   // Keep widget tests offline and deterministic: never fetch fonts at runtime.
@@ -277,16 +301,29 @@ void main() {
         (tester) async {
       await _pumpMarketplace(tester);
 
-      // Bottom nav is icons only: the four primary destinations.
+      // Bottom nav carries the four primary destinations, icon and label.
       expect(find.byIcon(Icons.home_rounded), findsOneWidget);
       expect(find.byIcon(Icons.grid_view_rounded), findsOneWidget);
       expect(find.byIcon(Icons.pie_chart_rounded), findsOneWidget);
       expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
+      for (final label in <String>['Home', 'Shop', 'For You', 'Deals']) {
+        expect(
+          find.descendant(
+            of: find.byKey(const ValueKey<String>('bottom-nav-bar')),
+            matching: find.text(label),
+          ),
+          findsOneWidget,
+          reason: label,
+        );
+      }
 
-      // Top bar keeps search, wishlist, cart and account reachable.
+      // Top bar keeps search, wishlist, notifications, cart, the dark-mode
+      // toggle and account reachable.
       expect(find.text('Search products, brands & more'), findsOneWidget);
       expect(find.byTooltip('Wishlist'), findsOneWidget);
+      expect(find.byTooltip('Notifications'), findsOneWidget);
       expect(find.byTooltip('Cart'), findsOneWidget);
+      expect(find.byTooltip('Switch to dark mode'), findsOneWidget);
       expect(find.byTooltip('Account'), findsOneWidget);
 
       // The destinations that do not fit in the bottom nav stay reachable.
@@ -296,6 +333,106 @@ void main() {
       expect(find.text('Categories'), findsOneWidget);
 
       expect(find.textContaining('demo data'), findsOneWidget);
+    });
+
+    testWidgets('only the active tab takes the sky-blue accent', (tester) async {
+      await _pumpMarketplace(tester);
+
+      final palette = MvPalette.light();
+      // Home starts selected: sky-blue icon and label, muted neighbours.
+      expect(_iconColor(tester, Icons.home_rounded), AppColors.primary);
+      expect(_labelColor(tester, 'Home'), AppColors.primary);
+      expect(_iconColor(tester, Icons.grid_view_rounded), palette.textMuted);
+      expect(_labelColor(tester, 'Shop'), palette.textMuted);
+
+      // Switching tabs moves the accent and slides the indicator along.
+      final before = tester.getTopLeft(
+        find.byKey(const ValueKey<String>('bottom-nav-indicator')),
+      );
+      await tester.tap(find.byIcon(Icons.grid_view_rounded));
+      await tester.pumpAndSettle();
+      final after = tester.getTopLeft(
+        find.byKey(const ValueKey<String>('bottom-nav-indicator')),
+      );
+
+      expect(_iconColor(tester, Icons.grid_view_rounded), AppColors.primary);
+      expect(_labelColor(tester, 'Shop'), AppColors.primary);
+      expect(_iconColor(tester, Icons.home_rounded), palette.textMuted);
+      expect(_labelColor(tester, 'Home'), palette.textMuted);
+      expect(after.dx, greaterThan(before.dx));
+    });
+
+    testWidgets('the dark-mode toggle flips every surface and text colour',
+        (tester) async {
+      await _pumpMarketplace(tester);
+
+      expect(_scaffoldBackground(tester), MvColors.page);
+      expect(_labelColor(tester, 'Home'), AppColors.primary);
+
+      await tester.tap(find.byTooltip('Switch to dark mode'));
+      await tester.pumpAndSettle();
+
+      // Surfaces step up to the dark card colour and text turns light, so
+      // nothing disappears once the theme flips.
+      final dark = MvPalette.dark();
+      expect(_scaffoldBackground(tester), MvColors.darkPage);
+      expect(_labelColor(tester, 'Home'), AppColors.primary);
+      expect(_labelColor(tester, 'Deals'), dark.textMuted);
+
+      // The control now offers the way back.
+      expect(find.byTooltip('Switch to light mode'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Switch to light mode'));
+      await tester.pumpAndSettle();
+      expect(_scaffoldBackground(tester), MvColors.page);
+    });
+
+    testWidgets('the dark theme keeps the marketplace legible', (tester) async {
+      // Boot straight into dark mode through the shared preference.
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        'mvec.theme_mode': 'dark',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      addTearDown(() => SharedPreferences.setMockInitialValues(<String, Object>{}));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            authControllerProvider.overrideWith(() => _StubAuthController(_user('buyer'))),
+          ],
+          child: const MvecApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final dark = MvPalette.dark();
+      expect(_scaffoldBackground(tester), MvColors.darkPage);
+      // Body copy is light, and the sky-blue accent still stands out on it.
+      expect(_labelColor(tester, 'Deals'), dark.textMuted);
+      expect(_iconColor(tester, Icons.home_rounded), AppColors.primary);
+      expect(
+        Theme.of(tester.element(find.byType(HomeScreen))).textTheme.bodyMedium!.color,
+        dark.text,
+      );
+    });
+
+    testWidgets('the shell lays out on a small phone without overflowing',
+        (tester) async {
+      // 360dp is the narrowest screen the storefront has to survive now that
+      // the top bar also carries notifications and the dark-mode toggle.
+      tester.view.physicalSize = const Size(360 * 3, 640 * 3);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.reset);
+
+      await _pumpMarketplace(tester);
+
+      expect(find.byType(MainNavigationScreen), findsOneWidget);
+      expect(find.byTooltip('Switch to dark mode'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('bottom-nav-indicator')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('tapping a bottom nav icon switches the body',

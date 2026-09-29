@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/theme.dart';
 import '../../../../core/utils/app_theme.dart';
 import '../../data/models/product_model.dart';
 import '../providers/home_provider.dart';
@@ -25,9 +26,9 @@ class ForYouScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.auto_awesome_outlined,
-                color: AppColors.primaryDeep,
+                color: context.mv.accentDeep,
                 size: 56,
               ),
               const SizedBox(height: 12),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/theme.dart';
 import '../../../../core/utils/app_theme.dart';
 import '../../data/models/category_model.dart';
 import '../../data/models/product_model.dart';
@@ -100,22 +101,23 @@ class _DemoNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final warning = AppColors.warning;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF6E7),
+        color: warning.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.info_outline, color: AppColors.warning, size: 16),
-          SizedBox(width: 8),
+          Icon(Icons.info_outline, color: warning, size: 16),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               'You are previewing demo data. Live products will appear when '
               'the marketplace API is connected.',
               style: TextStyle(
-                color: AppColors.warning,
+                color: warning,
                 fontSize: 12,
                 height: 1.3,
               ),
@@ -140,14 +142,21 @@ class _SectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: AppTextStyles.sectionTitle(context)),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.sectionTitle(context),
+          ),
+        ),
         if (actionLabel != null)
           TextButton(
             onPressed: onAction,
             child: Text(
               actionLabel!,
-              style: const TextStyle(
-                color: AppColors.primaryDeep,
+              style: TextStyle(
+                color: context.mv.accentDeep,
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),

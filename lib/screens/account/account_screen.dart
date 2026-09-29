@@ -178,9 +178,10 @@ class _PreferencesCard extends ConsumerWidget {
         children: [
           SwitchListTile(
             value: isDark,
-            onChanged: (v) {
-              ref.read(themeModeProvider.notifier).state = v ? ThemeMode.dark : ThemeMode.light;
-            },
+            onChanged:
+                (v) => ref
+                    .read(themeModeProvider.notifier)
+                    .set(v ? ThemeMode.dark : ThemeMode.light),
             contentPadding: EdgeInsets.zero,
             title: const Text('Dark mode', style: TextStyle(fontWeight: FontWeight.w700)),
             subtitle: const Text('Switch between light and dark admin console'),

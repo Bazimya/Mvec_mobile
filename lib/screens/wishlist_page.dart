@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../core/theme.dart';
+import '../core/utils/app_theme.dart';
 import '../models/product.dart';
 import 'product_detail_page.dart';
 
@@ -28,7 +31,7 @@ class _WishlistPageState extends State<WishlistPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: context.mv.page,
       appBar: AppBar(
         title: const Text(
           'My Wishlist',
@@ -36,8 +39,6 @@ class _WishlistPageState extends State<WishlistPage> {
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
         actions: [
           if (widget.onOpenCart != null)
             IconButton(
@@ -67,20 +68,24 @@ class _WishlistPageState extends State<WishlistPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.favorite_border, size: 80, color: Colors.grey[400]),
+          Icon(
+            Icons.favorite_border,
+            size: 80,
+            color: context.mv.accentDeep,
+          ),
           const SizedBox(height: 16),
           Text(
             'Your wishlist is empty',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
+              color: context.mv.text,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Save products you love by tapping the heart icon',
-            style: TextStyle(color: Colors.grey[500]),
+            style: TextStyle(color: context.mv.textMuted),
             textAlign: TextAlign.center,
           ),
         ],
@@ -90,13 +95,15 @@ class _WishlistPageState extends State<WishlistPage> {
 
   // ==================== WISHLIST ITEM ====================
   Widget _buildWishlistItem(Product product) {
+    final mv = context.mv;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: mv.surface,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: mv.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: mv.shadow,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -150,19 +157,20 @@ class _WishlistPageState extends State<WishlistPage> {
                           product.name,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                             height: 1.3,
+                            color: mv.text,
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           '\$${product.price.toStringAsFixed(2)}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context).primaryColor,
+                            color: AppColors.primary,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -170,7 +178,7 @@ class _WishlistPageState extends State<WishlistPage> {
                           product.vendor.name,
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey[600],
+                            color: mv.textMuted,
                           ),
                         ),
                       ],
@@ -221,11 +229,14 @@ class _WishlistPageState extends State<WishlistPage> {
                         ),
                       );
                     },
-                    icon: Icon(Icons.shopping_cart_outlined,
-                        size: 20, color: Theme.of(context).primaryColor),
-                    label: Text(
+                    icon: const Icon(
+                      Icons.shopping_cart_outlined,
+                      size: 20,
+                      color: AppColors.primary,
+                    ),
+                    label: const Text(
                       'Move to Cart',
-                      style: TextStyle(color: Theme.of(context).primaryColor),
+                      style: TextStyle(color: AppColors.primary),
                     ),
                   ),
                 ),
@@ -243,11 +254,12 @@ class _WishlistPageState extends State<WishlistPage> {
   }
 
   Widget _imagePlaceholder() {
+    final mv = context.mv;
     return Container(
       width: 90,
       height: 90,
-      color: Colors.grey[200],
-      child: const Icon(Icons.image, color: Colors.grey),
+      color: mv.soft,
+      child: Icon(Icons.image, color: mv.textMuted),
     );
   }
 }

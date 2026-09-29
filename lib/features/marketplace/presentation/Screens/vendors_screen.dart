@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/theme.dart';
 import '../../../../core/utils/app_theme.dart';
 import '../../data/models/vendor_model.dart';
 import '../providers/home_provider.dart';
@@ -64,16 +65,17 @@ class _VendorDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final description =
         vendor.description.isEmpty ? 'No description provided.' : vendor.description;
+    final mv = context.mv;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Row(
               children: [
-                const Icon(Icons.storefront, color: AppColors.primaryDeep, size: 40),
+                Icon(Icons.storefront, color: mv.accentDeep, size: 40),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -82,8 +84,7 @@ class _VendorDetailSheet extends StatelessWidget {
                   ),
                 ),
                 if (vendor.isVerified)
-                  const Icon(Icons.verified_rounded,
-                      color: AppColors.primaryDeep, size: 20),
+                  Icon(Icons.verified_rounded, color: mv.accentDeep, size: 20),
               ],
             ),
             const Divider(height: 24),
@@ -139,7 +140,7 @@ class _Stat extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: AppColors.primaryDeep),
+        Icon(icon, size: 16, color: context.mv.accentDeep),
         const SizedBox(width: 4),
         Text(label, style: AppTextStyles.caption(context)),
       ],

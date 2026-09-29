@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme.dart';
 import '../../../../core/utils/app_theme.dart';
 import '../../presentation/providers/home_provider.dart';
 
@@ -27,6 +28,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
     if (widget.banners.isEmpty) {
       return const SizedBox.shrink();
     }
+    final dotColor = context.mv.surface;
 
     return SizedBox(
       height: widget.height,
@@ -56,9 +58,10 @@ class _BannerCarouselState extends State<BannerCarousel> {
                     width: i == _current ? 18 : 6,
                     height: 6,
                     decoration: BoxDecoration(
-                      color: i == _current
-                          ? AppColors.surface
-                          : AppColors.surface.withValues(alpha: 0.5),
+                      color:
+                          i == _current
+                              ? dotColor
+                              : dotColor.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),
@@ -88,6 +91,7 @@ class _BannerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mv = context.mv;
     return GestureDetector(
       onTap: onTap,
       child: ClipRRect(
@@ -109,13 +113,16 @@ class _BannerCard extends StatelessWidget {
               CachedNetworkImage(
                 imageUrl: banner.imageUrl,
                 fit: BoxFit.cover,
-                placeholder: (context, _) =>
-                    const ColoredBox(color: AppColors.soft),
-                errorWidget: (context, _, _) => Container(
-                  color: AppColors.soft,
-                  child: const Icon(Icons.image_not_supported_outlined,
-                      color: AppColors.textSecondary),
-                ),
+                placeholder:
+                    (context, _) => ColoredBox(color: context.mv.soft),
+                errorWidget:
+                    (context, _, _) => Container(
+                      color: mv.soft,
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: mv.textMuted,
+                      ),
+                    ),
               ),
             Container(
               decoration: BoxDecoration(

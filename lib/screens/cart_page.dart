@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme.dart';
+import '../core/utils/app_theme.dart';
 import '../models/cart_item.dart';
 import '../models/product.dart';
 import 'product_detail_page.dart';
@@ -53,7 +55,7 @@ class _CartPageState extends State<CartPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: context.mv.page,
       appBar: AppBar(
         title: const Text(
           'My Cart',
@@ -61,8 +63,6 @@ class _CartPageState extends State<CartPage> {
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
       ),
       body: widget.cartItems.isEmpty
           ? _buildEmptyCart()
@@ -93,20 +93,24 @@ class _CartPageState extends State<CartPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.shopping_cart_outlined, size: 80, color: Colors.grey[400]),
+          Icon(
+            Icons.shopping_cart_outlined,
+            size: 80,
+            color: context.mv.accentDeep,
+          ),
           const SizedBox(height: 16),
           Text(
             'Your cart is empty',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
+              color: context.mv.text,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Add products to your cart to continue shopping',
-            style: TextStyle(color: Colors.grey[500]),
+            style: TextStyle(color: context.mv.textMuted),
             textAlign: TextAlign.center,
           ),
         ],
@@ -118,13 +122,15 @@ class _CartPageState extends State<CartPage> {
   Widget _buildCartItem(CartItem item) {
     final product = item.product;
 
+    final mv = context.mv;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: mv.surface,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: mv.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: mv.shadow,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -179,19 +185,20 @@ class _CartPageState extends State<CartPage> {
                           product.name,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                             height: 1.3,
+                            color: mv.text,
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           '\$${product.price.toStringAsFixed(2)}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context).primaryColor,
+                            color: AppColors.primary,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -199,7 +206,7 @@ class _CartPageState extends State<CartPage> {
                           product.vendor.name,
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey[600],
+                            color: mv.textMuted,
                           ),
                         ),
                       ],
@@ -224,14 +231,17 @@ class _CartPageState extends State<CartPage> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
               children: [
-                const Text(
+                Text(
                   'Quantity',
-                  style: TextStyle(fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: mv.text,
+                  ),
                 ),
                 const Spacer(),
                 Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
+                    border: Border.all(color: mv.border),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -249,9 +259,10 @@ class _CartPageState extends State<CartPage> {
                       ),
                       Text(
                         '${item.quantity}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: mv.text,
                         ),
                       ),
                       IconButton(
@@ -313,13 +324,15 @@ class _CartPageState extends State<CartPage> {
 
   // ==================== ORDER SUMMARY ====================
   Widget _buildOrderSummary() {
+    final mv = context.mv;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: mv.surface,
+        border: Border(top: BorderSide(color: mv.border)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: mv.shadow,
             blurRadius: 10,
             offset: const Offset(0, -3),
           ),
@@ -350,7 +363,7 @@ class _CartPageState extends State<CartPage> {
                     ? null
                     : widget.onProceedToCheckout,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -379,7 +392,7 @@ class _CartPageState extends State<CartPage> {
           style: TextStyle(
             fontSize: isTotal ? 17 : 15,
             fontWeight: isTotal ? FontWeight.w700 : FontWeight.w500,
-            color: isTotal ? Colors.black : Colors.grey[700],
+            color: isTotal ? context.mv.text : context.mv.textMuted,
           ),
         ),
         Text(
@@ -387,7 +400,7 @@ class _CartPageState extends State<CartPage> {
           style: TextStyle(
             fontSize: isTotal ? 18 : 15,
             fontWeight: isTotal ? FontWeight.w700 : FontWeight.w600,
-            color: isTotal ? Theme.of(context).primaryColor : Colors.black,
+            color: isTotal ? AppColors.primary : context.mv.text,
           ),
         ),
       ],
@@ -395,11 +408,12 @@ class _CartPageState extends State<CartPage> {
   }
 
   Widget _imagePlaceholder() {
+    final mv = context.mv;
     return Container(
       width: 90,
       height: 90,
-      color: Colors.grey[200],
-      child: const Icon(Icons.image, color: Colors.grey),
+      color: mv.soft,
+      child: Icon(Icons.image, color: mv.textMuted),
     );
   }
 }
