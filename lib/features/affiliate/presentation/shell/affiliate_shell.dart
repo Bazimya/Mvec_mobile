@@ -136,10 +136,7 @@ class _AffiliateShellState extends ConsumerState<AffiliateShell> {
             ),
           ),
           IconButton(
-            onPressed: () {
-              final t = ref.read(themeModeProvider);
-              ref.read(themeModeProvider.notifier).state = t == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
-            },
+            onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
             icon: MvIcon(isDark ? 'sun' : 'moon', color: ink),
             tooltip: 'Toggle theme',
           ),

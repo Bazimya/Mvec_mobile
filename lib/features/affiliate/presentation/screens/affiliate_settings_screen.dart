@@ -101,7 +101,7 @@ class _AffiliateSettingsScreenState extends ConsumerState<AffiliateSettingsScree
           Padding(
             padding: const EdgeInsets.only(bottom: 14),
             child: DropdownButtonFormField<String>(
-              initialValue: _language,
+              value: _language,
               decoration: const InputDecoration(labelText: 'Language'),
               items: const [
                 DropdownMenuItem(value: 'English', child: Text('English')),
@@ -115,10 +115,7 @@ class _AffiliateSettingsScreenState extends ConsumerState<AffiliateSettingsScree
           Row(
             children: [
               IconButton(
-                onPressed: () {
-                  final t = ref.read(themeModeProvider);
-                  ref.read(themeModeProvider.notifier).state = t == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
-                },
+                onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
                 icon: MvIcon(isDark ? 'sun' : 'moon', size: 18),
               ),
               const SizedBox(width: 8),

@@ -356,7 +356,12 @@ void main() {
       }
 
       expect(find.text('MVEC MARKETPLACE'), findsOneWidget);
-      expect(find.text('Shop. Sell.\nGrow together.'), findsOneWidget);
+      // The web hero renders the title as three styled spans
+      // (<span>Shop.</span> <span>Sell.</span> <em>Grow together.</em>), and
+      // the mobile hero mirrors that one span per line.
+      expect(find.text('Shop.'), findsOneWidget);
+      expect(find.text('Sell.'), findsOneWidget);
+      expect(find.text('Grow together.'), findsOneWidget);
 
       // Top bar keeps search, wishlist, notifications, cart, the dark-mode
       // toggle and account reachable.
@@ -543,7 +548,10 @@ void main() {
   });
 
   group('marketplace cart and wishlist', () {
-    /// Scrolls the home feed far enough to bring the product rows onstage.
+    /// Scrolls the home feed until an "Add to cart" button is actually inside
+    /// the viewport. Scrolling by a measured amount (rather than one fixed
+    /// drag) keeps the test independent of how tall the hero is, while the
+    /// viewport check stops before scrolling past the product row.
     Future<void> scrollToProducts(WidgetTester tester) async {
       final homeList =
           find
@@ -552,8 +560,18 @@ void main() {
                 matching: find.byType(ListView),
               )
               .first;
-      await tester.drag(homeList, const Offset(0, -850));
-      await tester.pumpAndSettle();
+      final addToCart = find.byTooltip('Add to cart');
+      final screenHeight =
+          tester.view.physicalSize.height / tester.view.devicePixelRatio;
+
+      for (var i = 0; i < 10; i++) {
+        if (addToCart.evaluate().isNotEmpty) {
+          final box = tester.getRect(addToCart.first);
+          if (box.top >= 0 && box.bottom <= screenHeight) break;
+        }
+        await tester.drag(homeList, const Offset(0, -300));
+        await tester.pumpAndSettle();
+      }
     }
 
     Badge badgeFor(WidgetTester tester, String countKey) =>

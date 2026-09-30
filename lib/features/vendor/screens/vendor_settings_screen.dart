@@ -182,7 +182,7 @@ class _SettingsEditorState extends ConsumerState<_SettingsEditor> {
             _field(_tin, 'Tax identification number'),
             if (_settings.shippingRules.isNotEmpty)
               DropdownButtonFormField<String>(
-                initialValue: _settings.defaultShippingRule?.id,
+                value: _settings.defaultShippingRule?.id,
                 decoration: const InputDecoration(
                   labelText: 'Default shipping rule',
                   border: OutlineInputBorder(),
@@ -580,7 +580,7 @@ class _SettingsEditorState extends ConsumerState<_SettingsEditor> {
                               : null,
                         ),
                         DropdownButtonFormField<StaffRole>(
-                          initialValue: role,
+                          value: role,
                           decoration: const InputDecoration(labelText: 'Role'),
                           items: [
                             for (final option in StaffRole.assignable)

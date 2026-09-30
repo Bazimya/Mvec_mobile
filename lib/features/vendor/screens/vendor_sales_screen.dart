@@ -308,7 +308,7 @@ class VendorSalesScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 10),
                           DropdownButtonFormField<PayoutMethod>(
-                            initialValue: method,
+                            value: method,
                             decoration: const InputDecoration(
                               labelText: 'Payout method',
                               border: OutlineInputBorder(),

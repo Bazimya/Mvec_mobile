@@ -343,7 +343,7 @@ class _VendorProductFormSheetState extends ConsumerState<VendorProductFormSheet>
       children: [
         switch (categoriesAsync) {
           AsyncData(:final value) => DropdownButtonFormField<String>(
-              initialValue: _categoryId,
+              value: _categoryId,
               isExpanded: true,
               decoration: const InputDecoration(labelText: 'Category'),
               hint: const Text('Select a category'),
@@ -612,7 +612,7 @@ class _VendorProductFormSheetState extends ConsumerState<VendorProductFormSheet>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           DropdownButtonFormField<String>(
-            initialValue: _status,
+            value: _status,
             decoration: const InputDecoration(labelText: 'Product status'),
             items: [
               for (final s in VendorProductStatus.all) DropdownMenuItem(value: s, child: Text(titleCase(s))),

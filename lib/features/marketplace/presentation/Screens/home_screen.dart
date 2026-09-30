@@ -73,8 +73,9 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 if (visibleCategories.isNotEmpty) ...<Widget>[
                   _SectionHeader(
+                    eyebrow: 'SHOP BY CATEGORY',
                     title: 'Find what you need',
-                    actionLabel: 'See all',
+                    actionLabel: 'View all →',
                     onAction: onBrowseAll,
                   ),
                   const SizedBox(height: 12),
@@ -85,7 +86,12 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                 ],
                 if (popularProducts.isNotEmpty) ...<Widget>[
-                  _SectionHeader(title: 'Popular Products'),
+                  _SectionHeader(
+                    eyebrow: 'TRENDING NOW',
+                    title: 'Popular products',
+                    actionLabel: 'View all products →',
+                    onAction: onBrowseAll,
+                  ),
                   const SizedBox(height: 12),
                   _ProductRow(products: popularProducts),
                   const SizedBox(height: 20),
@@ -96,7 +102,12 @@ class HomeScreen extends StatelessWidget {
                         product.categoryId == category.id ||
                         product.categoryName == category.name,
                   )) ...<Widget>[
-                    _SectionHeader(title: category.name),
+                    _SectionHeader(
+                      eyebrow: category.name.toUpperCase(),
+                      title: category.name,
+                      actionLabel: 'More ${category.name} →',
+                      onAction: () => _onCategoryTap(category),
+                    ),
                     const SizedBox(height: 12),
                     _ProductRow(
                       products:
@@ -122,7 +133,10 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                 ],
                 if (provider.vendors.isNotEmpty) ...<Widget>[
-                  _SectionHeader(title: 'Trusted Vendors'),
+                  _SectionHeader(
+                    eyebrow: 'TOP STORES',
+                    title: 'Trusted vendors',
+                  ),
                   const SizedBox(height: 12),
                   _VendorRow(vendors: provider.vendors),
                 ],
@@ -137,6 +151,11 @@ class HomeScreen extends StatelessWidget {
   void _onCategoryTap(Category category) => onCategoryTap?.call(category);
 }
 
+/// Marketplace hero, matched to the web `Home.jsx` / `styles.css`
+/// `.hero-modern` block: a full-width bordered surface whose right side carries
+/// a soft gradient panel (`.hero-modern:after`) with floating product cards
+/// (`.hero-product-card`) over a blurred glow (`.visual-glow`). Copy, button
+/// styles, the gradient/outline pair and the trust row follow the web exactly.
 class _MarketplaceHero extends StatelessWidget {
   const _MarketplaceHero({
     required this.products,
@@ -150,113 +169,331 @@ class _MarketplaceHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final product = products.isEmpty ? null : products.first;
+    // The web floats the first six products in the visual stage.
+    final heroProducts = products.take(6).toList();
     return Container(
       margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[Color(0xFFE9F9FD), Color(0xFFC6EDF8)],
-        ),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.mv.border),
       ),
+      clipBehavior: Clip.antiAlias,
+      child: LayoutBuilder(
+        builder: (context, c) {
+          final isWide = c.maxWidth >= 640;
+          final copy = _HeroCopy(
+            onShopNow: onShopNow,
+            onViewDeals: onViewDeals,
+            isWide: isWide,
+          );
+          final stage = _HeroProductStage(products: heroProducts);
+
+          // Narrow screens stack the copy above the stage, like the web's
+          // `.hero-modern` at <=900px.
+          if (!isWide) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [copy, stage],
+            );
+          }
+          // Side-by-side columns. Neither column is height-constrained, so
+          // each sizes to its own content and nothing can overflow; the outer
+          // gradient fills whatever the taller column ends up being.
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 9, child: copy),
+              Expanded(flex: 11, child: stage),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Left column of the hero: eyebrow, animated title, tagline, buttons, trust row.
+class _HeroCopy extends StatelessWidget {
+  const _HeroCopy({
+    required this.onShopNow,
+    required this.onViewDeals,
+    required this.isWide,
+  });
+
+  final VoidCallback? onShopNow;
+  final VoidCallback? onViewDeals;
+  final bool isWide;
+
+  @override
+  Widget build(BuildContext context) {
+    final mv = context.mv;
+    return Container(
+      padding: EdgeInsets.fromLTRB(isWide ? 28 : 20, 24, isWide ? 8 : 20, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          Text(
+            'MVEC MARKETPLACE',
+            style: AppTextStyles.caption(context).copyWith(
+              color: mv.accentDeep,
+              fontWeight: FontWeight.w900,
+              fontSize: 11,
+              letterSpacing: 2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          // The web renders the title as three inline spans
+          // (<span>Shop.</span> <span>Sell.</span> <em>Grow together.</em>).
+          // They stay separate so each keeps its own weight/colour, but wrap
+          // onto as few lines as the width allows to keep the hero compact.
+          Wrap(
+            spacing: 6,
+            runSpacing: 0,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              _heroWord(context, 'Shop.', isWide),
+              _heroWord(context, 'Sell.', isWide),
+              Text(
+                'Grow together.',
+                style: AppTextStyles.headline(context).copyWith(
+                  fontSize: isWide ? 34 : 27,
+                  height: 1.02,
+                  fontWeight: FontWeight.w800,
+                  color: mv.accentDeep,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Products from trusted sellers across Rwanda.',
+            style: AppTextStyles.bodySecondary(
+              context,
+            ).copyWith(fontSize: 13, height: 1.4),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            children: [
+              FilledButton(
+                onPressed: onShopNow,
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'MVEC MARKETPLACE',
-                      style: AppTextStyles.caption(context).copyWith(
-                        color: AppColors.primaryDeep,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Shop. Sell.\nGrow together.',
-                      style: AppTextStyles.headline(context).copyWith(
-                        fontSize: 25,
-                        height: 1.04,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Products from trusted sellers across Rwanda.',
-                      style: AppTextStyles.bodySecondary(
-                        context,
-                      ).copyWith(fontSize: 12, height: 1.3),
-                    ),
+                    Text('Shop now'),
+                    SizedBox(width: 6),
+                    Icon(Icons.arrow_forward_rounded, size: 17),
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
-              SizedBox(
-                width: 88,
-                height: 112,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child:
-                      product != null && product.imageUrl.isNotEmpty
-                          ? CachedNetworkImage(
-                            imageUrl: product.imageUrl,
-                            fit: BoxFit.cover,
-                            placeholder:
-                                (context, _) => ColoredBox(
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                  child: Icon(
-                                    Icons.shopping_bag_outlined,
-                                    color: AppColors.primaryDeep,
+              OutlinedButton(onPressed: onViewDeals, child: const Text('Start selling')),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Web trust row: "✓ Verified sellers · ✓ Secure checkout · ✓ Local delivery".
+          Wrap(
+            spacing: 14,
+            runSpacing: 4,
+            children: const [
+              _TrustItem(label: 'Verified sellers'),
+              _TrustItem(label: 'Secure checkout'),
+              _TrustItem(label: 'Local delivery'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _heroWord(BuildContext context, String word, bool isWide) => Text(
+    word,
+    style: AppTextStyles.headline(context).copyWith(
+      fontSize: isWide ? 34 : 27,
+      height: 1.02,
+      fontWeight: FontWeight.w800,
+    ),
+  );
+}
+
+/// A single "✓ label" trust marker, mirroring the web `.trust-row span`.
+class _TrustItem extends StatelessWidget {
+  const _TrustItem({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(Icons.check_circle, size: 14, color: context.mv.accentDeep),
+      const SizedBox(width: 5),
+      Text(
+        label,
+        style: AppTextStyles.caption(context).copyWith(fontSize: 11),
+      ),
+    ],
+  );
+}
+
+/// Right column of the hero: the gradient panel with floating product cards.
+class _HeroProductStage extends StatelessWidget {
+  const _HeroProductStage({required this.products});
+  final List<Product> products;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      // `.hero-modern:after` gradient panel.
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFE9F9FD), Color(0xFFC9F0FB)],
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, c) {
+          final isWide = c.maxWidth >= 420;
+          // Two staggered columns of floating cards, echoing the web's
+          // absolutely-positioned hero-product-0..5. Capped at two per column
+          // so the stage stays a sane height on a phone.
+          final columns = <List<Product>>[
+            <Product>[],
+            <Product>[],
+          ];
+          final capped = products.take(4).toList();
+          for (var i = 0; i < capped.length; i++) {
+            columns[i % 2].add(capped[i]);
+          }
+          return Stack(
+            children: [
+              // `.visual-glow` blurred circle.
+              Positioned(
+                right: isWide ? 40 : 12,
+                top: isWide ? 24 : 8,
+                child: Container(
+                  width: isWide ? 190 : 120,
+                  height: isWide ? 190 : 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.55),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isWide ? 22 : 14,
+                  vertical: isWide ? 24 : 16,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (var col = 0; col < columns.length; col++)
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(left: col == 1 ? 10 : 0),
+                          child: Column(
+                            children: [
+                              for (var i = 0; i < columns[col].length; i++)
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    bottom: 10,
+                                    top: i.isOdd ? (isWide ? 18 : 10) : 0,
+                                  ),
+                                  child: _HeroProductCard(
+                                    product: columns[col][i],
+                                    imageHeight: isWide ? 108 : 84,
                                   ),
                                 ),
-                            errorWidget:
-                                (context, _, _) => ColoredBox(
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                  child: Icon(
-                                    Icons.shopping_bag_outlined,
-                                    color: AppColors.primaryDeep,
-                                  ),
-                                ),
-                          )
-                          : ColoredBox(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            child: Icon(
-                              Icons.shopping_bag_outlined,
-                              color: AppColors.primaryDeep,
-                              size: 36,
-                            ),
+                            ],
                           ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 2,
-            children: [
-              FilledButton(onPressed: onShopNow, child: const Text('Shop now')),
-              TextButton(onPressed: onViewDeals, child: const Text('Deals')),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Verified sellers  ·  Secure checkout  ·  Local delivery',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.caption(context).copyWith(fontSize: 10),
-          ),
-        ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// A single floating product card, mirroring `.hero-product-card`.
+class _HeroProductCard extends StatelessWidget {
+  const _HeroProductCard({required this.product, required this.imageHeight});
+  final Product product;
+
+  /// Fixed image height keeps the card (and therefore the hero) a predictable
+  /// size, so a long product name or a narrow phone can never overflow it.
+  final double imageHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        context.read<HomeProvider>().addRecentlyViewed(product);
+        openProductDetails(context, product);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.94),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.85)),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF18586F).withValues(alpha: 0.18),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: double.infinity,
+                height: imageHeight,
+                child: product.imageUrl.isEmpty
+                    ? Container(color: context.mv.soft)
+                    : CachedNetworkImage(
+                        imageUrl: product.imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (context, _) =>
+                            Container(color: context.mv.soft),
+                        errorWidget: (context, _, _) =>
+                            Container(color: context.mv.soft),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              product.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.caption(context).copyWith(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: context.mv.text,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '\$${product.price.toStringAsFixed(0)}',
+              style: AppTextStyles.caption(context).copyWith(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: context.mv.text,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -355,35 +592,65 @@ class _DemoNotice extends StatelessWidget {
   }
 }
 
-/// Section title row with an optional trailing action.
+/// Section title row mirroring the web `.section-heading`: an optional
+/// uppercase eyebrow above the title, with a trailing "View all →" action.
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, this.actionLabel, this.onAction});
+  const _SectionHeader({
+    required this.title,
+    this.eyebrow,
+    this.actionLabel,
+    this.onAction,
+  });
 
   final String title;
+  final String? eyebrow;
   final String? actionLabel;
   final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.sectionTitle(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (eyebrow != null) ...[
+                Text(
+                  eyebrow!,
+                  style: AppTextStyles.caption(context).copyWith(
+                    color: context.mv.accentDeep,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 11,
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+              ],
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.sectionTitle(context),
+              ),
+            ],
           ),
         ),
         if (actionLabel != null)
           TextButton(
             onPressed: onAction,
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
             child: Text(
               actionLabel!,
               style: TextStyle(
                 color: context.mv.accentDeep,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w800,
                 fontSize: 13,
               ),
             ),
