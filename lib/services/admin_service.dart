@@ -1,6 +1,7 @@
 import '../core/api_client.dart';
 import '../models/catalog.dart';
 import '../models/party.dart';
+import '../models/platform_settings.dart';
 import '../models/user.dart';
 
 /// Admin-facing API calls. Everything here either requires `super_admin`
@@ -9,15 +10,36 @@ class AdminService {
   AdminService(this._api);
   final ApiClient _api;
 
+  Future<PlatformSettings> platformSettings() async {
+    final res = await _api.get('/admin/settings');
+    return PlatformSettings.fromJson(singleJson(res, ['settings', 'data']));
+  }
+
+  Future<PlatformSettings> updatePlatformSettings(
+    PlatformSettings settings,
+  ) async {
+    final res = await _api.patch('/admin/settings', body: settings.toJson());
+    return PlatformSettings.fromJson(singleJson(res, ['settings', 'data']));
+  }
+
   // ---------- Users / buyers ----------
-  Future<Paged<UserRecord>> users({int page = 1, int limit = 20, String? role, String? status, String? search}) async {
-    final res = await _api.get('/users', query: {
-      'page': page,
-      'limit': limit,
-      if (role != null) 'role': role,
-      if (status != null) 'status': status,
-      if (search != null) 'search': search,
-    });
+  Future<Paged<UserRecord>> users({
+    int page = 1,
+    int limit = 20,
+    String? role,
+    String? status,
+    String? search,
+  }) async {
+    final res = await _api.get(
+      '/users',
+      query: {
+        'page': page,
+        'limit': limit,
+        if (role != null) 'role': role,
+        if (status != null) 'status': status,
+        if (search != null) 'search': search,
+      },
+    );
     return Paged.parse(res, UserRecord.fromJson);
   }
 
@@ -32,52 +54,85 @@ class AdminService {
   }
 
   // ---------- Account / profile ----------
-  Future<void> changePassword({required String currentPassword, required String newPassword}) async {
-    await _api.patch('/auth/change-password', body: {
-      'currentPassword': currentPassword,
-      'newPassword': newPassword,
-    });
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await _api.patch(
+      '/auth/change-password',
+      body: {'currentPassword': currentPassword, 'newPassword': newPassword},
+    );
   }
 
   // ---------- Vendors ----------
-  Future<Paged<PartyRecord>> vendors({int page = 1, int pageSize = 20, String? status, String? verificationStatus}) async {
-    final res = await _api.get('/admin/vendors', query: {
-      'page': page,
-      'pageSize': pageSize,
-      if (status != null) 'status': status,
-      if (verificationStatus != null) 'verificationStatus': verificationStatus,
-    });
+  Future<Paged<PartyRecord>> vendors({
+    int page = 1,
+    int pageSize = 20,
+    String? status,
+    String? verificationStatus,
+  }) async {
+    final res = await _api.get(
+      '/admin/vendors',
+      query: {
+        'page': page,
+        'pageSize': pageSize,
+        if (status != null) 'status': status,
+        if (verificationStatus != null)
+          'verificationStatus': verificationStatus,
+      },
+    );
     return Paged.parse(res, PartyRecord.fromJson);
   }
 
   Future<PartyRecord> vendorVerify(String id, String decision) async {
-    final res = await _api.patch('/admin/vendors/$id/verify', body: {'decision': decision});
+    final res = await _api.patch(
+      '/admin/vendors/$id/verify',
+      body: {'decision': decision},
+    );
     return PartyRecord.fromJson(singleJson(res, ['vendor']));
   }
 
   Future<PartyRecord> vendorStatus(String id, String status) async {
-    final res = await _api.patch('/admin/vendors/$id/status', body: {'status': status});
+    final res = await _api.patch(
+      '/admin/vendors/$id/status',
+      body: {'status': status},
+    );
     return PartyRecord.fromJson(singleJson(res, ['vendor']));
   }
 
   // ---------- Suppliers ----------
-  Future<Paged<PartyRecord>> suppliers({int page = 1, int pageSize = 20, String? status, String? verificationStatus}) async {
-    final res = await _api.get('/admin/suppliers', query: {
-      'page': page,
-      'pageSize': pageSize,
-      if (status != null) 'status': status,
-      if (verificationStatus != null) 'verificationStatus': verificationStatus,
-    });
+  Future<Paged<PartyRecord>> suppliers({
+    int page = 1,
+    int pageSize = 20,
+    String? status,
+    String? verificationStatus,
+  }) async {
+    final res = await _api.get(
+      '/admin/suppliers',
+      query: {
+        'page': page,
+        'pageSize': pageSize,
+        if (status != null) 'status': status,
+        if (verificationStatus != null)
+          'verificationStatus': verificationStatus,
+      },
+    );
     return Paged.parse(res, PartyRecord.fromJson);
   }
 
   Future<PartyRecord> supplierVerify(String id, String decision) async {
-    final res = await _api.patch('/admin/suppliers/$id/verify', body: {'decision': decision});
+    final res = await _api.patch(
+      '/admin/suppliers/$id/verify',
+      body: {'decision': decision},
+    );
     return PartyRecord.fromJson(singleJson(res, ['supplier']));
   }
 
   Future<PartyRecord> supplierStatus(String id, String status) async {
-    final res = await _api.patch('/admin/suppliers/$id/status', body: {'status': status});
+    final res = await _api.patch(
+      '/admin/suppliers/$id/status',
+      body: {'status': status},
+    );
     return PartyRecord.fromJson(singleJson(res, ['supplier']));
   }
 
@@ -87,23 +142,50 @@ class AdminService {
     return listJson(res, ['data']).map(PartyRecord.fromJson).toList();
   }
 
+  Future<PartyRecord> affiliateVerify(String id, String decision) async {
+    final res = await _api.patch(
+      '/affiliates/$id/verify',
+      body: {'decision': decision},
+    );
+    return PartyRecord.fromJson(singleJson(res, ['affiliate']));
+  }
+
+  Future<PartyRecord> affiliateStatus(String id, String status) async {
+    final res = await _api.patch(
+      '/affiliates/$id/status',
+      body: {'status': status},
+    );
+    return PartyRecord.fromJson(singleJson(res, ['affiliate']));
+  }
+
   Future<List<PayoutRecord>> affiliatePayouts() async {
     final res = await _api.get('/affiliates/admin/payouts');
     return listJson(res, ['data']).map(PayoutRecord.fromJson).toList();
   }
 
-  Future<void> processAffiliatePayout(String payoutId, String status, {String? reference, String? reason}) async {
-    await _api.post('/affiliates/payouts/$payoutId/process', body: {
-      'status': status,
-      if (reference != null) 'transactionReference': reference,
-      if (reason != null) 'rejectionReason': reason,
-    });
+  Future<void> processAffiliatePayout(
+    String payoutId,
+    String status, {
+    String? reference,
+    String? reason,
+  }) async {
+    await _api.post(
+      '/affiliates/payouts/$payoutId/process',
+      body: {
+        'status': status,
+        if (reference != null) 'transactionReference': reference,
+        if (reason != null) 'rejectionReason': reason,
+      },
+    );
   }
 
   // ---------- Categories ----------
   Future<List<CategoryRecord>> categories() async {
     final res = await _api.get('/categories', query: {'tree': 'false'});
-    return listJson(res, ['categories', 'data']).map(CategoryRecord.fromJson).toList();
+    return listJson(res, [
+      'categories',
+      'data',
+    ]).map(CategoryRecord.fromJson).toList();
   }
 
   Future<void> createCategory(Map<String, dynamic> body) async {
@@ -120,7 +202,10 @@ class AdminService {
 
   // ---------- Products ----------
   Future<List<ProductRecord>> products({int page = 1, int limit = 50}) async {
-    final res = await _api.get('/products', query: {'page': page, 'limit': limit, 'status': 'ACTIVE'});
+    final res = await _api.get(
+      '/products',
+      query: {'page': page, 'limit': limit, 'status': 'ACTIVE'},
+    );
     return listJson(res, ['data']).map(ProductRecord.fromJson).toList();
   }
 

@@ -69,14 +69,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       subtitle:
           'Choose a strong password that you have not used before for this account.',
       compact: true,
-      topBar: Align(
-        alignment: Alignment.centerLeft,
-        child: IconButton(
-          tooltip: 'Back',
-          onPressed: loading ? null : () => context.go('/verify-code'),
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18),
-        ),
-      ),
+      onBack: loading ? null : () => context.go('/verify-code'),
+      onBackLabel: 'Back to verification',
       footer: authLinkFooter(
         context,
         'Remember your password?',

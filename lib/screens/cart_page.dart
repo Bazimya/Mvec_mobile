@@ -8,9 +8,16 @@ import 'product_detail_page.dart';
 
 class CartPage extends StatefulWidget {
   final List<CartItem> cartItems;
-  final Function(CartItem) onUpdateQuantity;
-  final Function(CartItem) onRemoveItem;
+
+  /// Persists a new quantity for [item] on the backend. The second argument is
+  /// the requested quantity; the page re-renders from the server's response
+  /// rather than trusting the optimistic local change.
+  final Future<void> Function(CartItem item, int quantity) onUpdateQuantity;
+  final Future<void> Function(CartItem item) onRemoveItem;
   final VoidCallback onProceedToCheckout;
+  final bool isSyncing;
+  final String? errorMessage;
+  final VoidCallback? onRetry;
   final bool Function(Product)? isWishlisted;
   final ValueChanged<Product>? onToggleWishlist;
   final VoidCallback? onOpenWishlist;
@@ -23,6 +30,9 @@ class CartPage extends StatefulWidget {
     required this.onUpdateQuantity,
     required this.onRemoveItem,
     required this.onProceedToCheckout,
+    this.isSyncing = false,
+    this.errorMessage,
+    this.onRetry,
     this.isWishlisted,
     this.onToggleWishlist,
     this.onOpenWishlist,
@@ -68,6 +78,8 @@ class _CartPageState extends State<CartPage> {
           ? _buildEmptyCart()
           : Column(
               children: [
+                if (widget.errorMessage != null)
+                  _buildCartError(widget.errorMessage!),
                 // Cart Items List
                 Expanded(
                   child: ListView.separated(
@@ -113,6 +125,40 @@ class _CartPageState extends State<CartPage> {
             style: TextStyle(color: context.mv.textMuted),
             textAlign: TextAlign.center,
           ),
+        ],
+      ),
+    );
+  }
+
+  /// Banner shown when the last cart write failed. The list still shows the
+  /// server's last known state, so the shopper is told the change did not
+  /// save rather than being left with a silently wrong cart.
+  Widget _buildCartError(String message) {
+    final mv = context.mv;
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: mv.text, fontSize: 12, height: 1.3),
+            ),
+          ),
+          if (widget.onRetry != null)
+            TextButton(
+              onPressed: widget.onRetry,
+              child: const Text('Retry'),
+            ),
         ],
       ),
     );
@@ -248,13 +294,12 @@ class _CartPageState extends State<CartPage> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.remove, size: 18),
-                        onPressed: item.quantity > 1
-                            ? () {
-                                setState(() {
-                                  item.quantity--;
-                                });
-                                widget.onUpdateQuantity(item);
-                              }
+                        onPressed: item.quantity > 1 &&
+                                !widget.isSyncing
+                            ? () => widget.onUpdateQuantity(
+                                item,
+                                item.quantity - 1,
+                              )
                             : null,
                       ),
                       Text(
@@ -267,13 +312,12 @@ class _CartPageState extends State<CartPage> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.add, size: 18),
-                        onPressed: item.quantity < product.stock
-                            ? () {
-                                setState(() {
-                                  item.quantity++;
-                                });
-                                widget.onUpdateQuantity(item);
-                              }
+                        onPressed: item.quantity < product.stock &&
+                                !widget.isSyncing
+                            ? () => widget.onUpdateQuantity(
+                                item,
+                                item.quantity + 1,
+                              )
                             : null,
                       ),
                     ],

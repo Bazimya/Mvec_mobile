@@ -82,14 +82,8 @@ class _VerificationCodeScreenState extends ConsumerState<VerificationCodeScreen>
       title: 'Verify your identity',
       subtitle: 'Enter the 6-digit code sent to $target.',
       compact: true,
-      topBar: Align(
-        alignment: Alignment.centerLeft,
-        child: IconButton(
-          tooltip: 'Back',
-          onPressed: loading ? null : () => context.go('/forgot-password'),
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18),
-        ),
-      ),
+      onBack: loading ? null : () => context.go('/forgot-password'),
+      onBackLabel: 'Back to email',
       footer: authLinkFooter(
         context,
         'Entered the wrong address?',

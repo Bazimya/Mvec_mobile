@@ -6,6 +6,7 @@ import '../../core/nav_items.dart';
 import '../../core/theme.dart';
 import '../../core/utils.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/back_to_marketplace_button.dart';
 import '../../widgets/mv_icon.dart';
 
 /// Mirrors the frontend `DashboardLayout`: sticky topbar (search, theme,
@@ -137,6 +138,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
               ),
             ),
           ),
+          const BackToMarketplaceButton(iconOnly: true),
           IconButton(
             onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
             icon: MvIcon(isDark ? 'sun' : 'moon', color: ink),

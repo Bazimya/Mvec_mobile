@@ -45,7 +45,8 @@ class VerificationDocument {
   String? status;
   DateTime? uploadedAt;
 
-  factory VerificationDocument.fromJson(Map<String, dynamic> j) => VerificationDocument(
+  factory VerificationDocument.fromJson(Map<String, dynamic> j) =>
+      VerificationDocument(
         id: j['_id'] ?? j['id'],
         type: j['type'] ?? j['documentType'] ?? j['kind'],
         label: j['label'] ?? j['name'] ?? j['title'],
@@ -135,66 +136,125 @@ class StoreProfile {
   Map<String, dynamic>? raw;
 
   factory StoreProfile.fromJson(Map<String, dynamic> j) {
-    final addr = j['address'] is Map ? Map<String, dynamic>.from(j['address']) : const <String, dynamic>{};
-    final socials = j['socials'] is Map ? Map<String, dynamic>.from(j['socials']) : const <String, dynamic>{};
-    final contact = j['contact'] is Map ? Map<String, dynamic>.from(j['contact']) : const <String, dynamic>{};
-    final owner = j['owner'] is Map ? Map<String, dynamic>.from(j['owner']) : const <String, dynamic>{};
+    final addr =
+        j['address'] is Map
+            ? Map<String, dynamic>.from(j['address'])
+            : const <String, dynamic>{};
+    final socials =
+        j['socials'] is Map
+            ? Map<String, dynamic>.from(j['socials'])
+            : const <String, dynamic>{};
+    final contact =
+        j['contact'] is Map
+            ? Map<String, dynamic>.from(j['contact'])
+            : const <String, dynamic>{};
+    final owner =
+        j['owner'] is Map
+            ? Map<String, dynamic>.from(j['owner'])
+            : const <String, dynamic>{};
     final docs = j['documents'];
     return StoreProfile(
       id: j['_id'] ?? j['id'],
-      name: j['storeName'] ?? j['businessName'] ?? j['name'] ?? j['companyName'],
+      name:
+          j['storeName'] ?? j['businessName'] ?? j['name'] ?? j['companyName'],
       slug: j['slug'],
       logo: j['logo'] ?? j['logoUrl'] ?? j['image'],
       description: j['description'] ?? j['about'] ?? j['bio'],
       email: j['email'] ?? contact['email'] ?? owner['email'],
-      phone: j['phone'] ?? j['telephone'] ?? j['contactNumber'] ?? contact['phone'] ?? owner['phone'],
+      phone:
+          j['phone'] ??
+          j['telephone'] ??
+          j['contactNumber'] ??
+          contact['phone'] ??
+          owner['phone'],
       facebook: j['facebook'] ?? j['facebookUrl'] ?? socials['facebook'],
       instagram: j['instagram'] ?? j['instagramUrl'] ?? socials['instagram'],
       twitter: j['twitter'] ?? j['twitterUrl'] ?? socials['twitter'] ?? j['x'],
       website: j['website'] ?? j['webUrl'] ?? socials['website'],
-      street: j['street'] ?? j['addressLine'] ?? addr['street'] ?? addr['address'],
+      street:
+          j['street'] ?? j['addressLine'] ?? addr['street'] ?? addr['address'],
       city: j['city'] ?? j['town'] ?? addr['city'],
       state: j['state'] ?? j['province'] ?? addr['state'] ?? addr['province'],
       country: j['country'] ?? addr['country'],
-      postalCode: j['postalCode'] ?? j['zip'] ?? j['zipCode'] ?? addr['postalCode'] ?? addr['zip'],
-      deliveryNote: j['deliveryNote'] ?? j['deliveryInstructions'] ?? (j['delivery'] is Map ? (j['delivery'] as Map)['note']?.toString() : null),
-      deliveryFee: (j['deliveryFee'] ?? (j['delivery'] is Map ? (j['delivery'] as Map)['fee'] : null)) as num?,
-      deliveryTime: j['deliveryTime'] ?? (j['delivery'] is Map ? (j['delivery'] as Map)['time']?.toString() : null),
-      verificationStatus: _up(j['verificationStatus'] ?? j['verification'] ?? j['verified']),
+      postalCode:
+          j['postalCode'] ??
+          j['zip'] ??
+          j['zipCode'] ??
+          addr['postalCode'] ??
+          addr['zip'],
+      deliveryNote:
+          j['deliveryNote'] ??
+          j['deliveryInstructions'] ??
+          (j['delivery'] is Map
+              ? (j['delivery'] as Map)['note']?.toString()
+              : null),
+      deliveryFee:
+          (j['deliveryFee'] ??
+                  (j['delivery'] is Map ? (j['delivery'] as Map)['fee'] : null))
+              as num?,
+      deliveryTime:
+          j['deliveryTime'] ??
+          (j['delivery'] is Map
+              ? (j['delivery'] as Map)['time']?.toString()
+              : null),
+      verificationStatus: _up(
+        j['verificationStatus'] ?? j['verification'] ?? j['verified'],
+      ),
       status: _up(j['status'] ?? j['accountStatus'] ?? j['operationalStatus']),
-      rating: (j['rating'] ?? j['averageRating'] ?? j['storeRating'])?.toDouble(),
-      ratingCount: _int(j['ratingCount'] ?? j['totalRatings'] ?? j['reviewsCount']),
-      productCount: _int(j['productCount'] ?? j['productsCount'] ?? j['totalProducts']),
-      submittedAt: parseDate(j['submittedAt'] ?? j['verificationSubmittedAt'] ?? j['createdAt']),
-      rejectionReason: j['rejectionReason'] ?? j['verificationNote'] ?? j['rejectionNote'],
-      documents: docs is List
-          ? docs
-              .whereType<Map>()
-              .map((e) => VerificationDocument.fromJson(Map<String, dynamic>.from(e)))
-              .toList()
-          : null,
+      rating:
+          (j['rating'] ?? j['averageRating'] ?? j['storeRating'])?.toDouble(),
+      ratingCount: _int(
+        j['ratingCount'] ?? j['totalRatings'] ?? j['reviewsCount'],
+      ),
+      productCount: _int(
+        j['productCount'] ?? j['productsCount'] ?? j['totalProducts'],
+      ),
+      submittedAt: parseDate(
+        j['submittedAt'] ?? j['verificationSubmittedAt'] ?? j['createdAt'],
+      ),
+      rejectionReason:
+          j['rejectionReason'] ?? j['verificationNote'] ?? j['rejectionNote'],
+      documents:
+          docs is List
+              ? docs
+                  .whereType<Map>()
+                  .map(
+                    (e) => VerificationDocument.fromJson(
+                      Map<String, dynamic>.from(e),
+                    ),
+                  )
+                  .toList()
+              : null,
       raw: j,
     );
   }
 
-  static String? _up(dynamic v) => v?.toString().trim().toUpperCase().replaceAll('-', '_');
+  static String? _up(dynamic v) =>
+      v?.toString().trim().toUpperCase().replaceAll('-', '_');
 
-  static int? _int(dynamic v) => v is int ? v : (v is num ? v.toInt() : (v is String ? int.tryParse(v) : null));
+  static int? _int(dynamic v) =>
+      v is int
+          ? v
+          : (v is num ? v.toInt() : (v is String ? int.tryParse(v) : null));
 
   String get display => name ?? 'Unnamed store';
 
   /// Normalised verification status; a store with no record yet is unverified.
   String get verification =>
-      verificationStatus == null || verificationStatus!.isEmpty ? VendorVerification.unverified : verificationStatus!;
+      verificationStatus == null || verificationStatus!.isEmpty
+          ? VendorVerification.unverified
+          : verificationStatus!;
 
   /// Normalised account status; a store with no record yet is active.
-  String get accountStatus => status == null || status!.isEmpty ? VendorAccountStatus.active : status!;
+  String get accountStatus =>
+      status == null || status!.isEmpty ? VendorAccountStatus.active : status!;
 
   bool get isVerified => verification == VendorVerification.verified;
 
   /// The vendor still owes the platform documents, or is waiting on a decision.
   bool get needsVerification =>
-      verification == VendorVerification.unverified || verification == VendorVerification.pending;
+      verification == VendorVerification.unverified ||
+      verification == VendorVerification.pending;
 
   /// The store can trade: verified and not blocked by the platform.
   bool get canOperate =>
@@ -211,9 +271,12 @@ class StoreProfile {
 
   /// Required document types the vendor has not supplied yet.
   List<String> get missingDocuments {
-    final have = (documents ?? const <VerificationDocument>[])
-        .map((d) => (d.type ?? '').trim().toUpperCase().replaceAll('-', '_'))
-        .toSet();
+    final have =
+        (documents ?? const <VerificationDocument>[])
+            .map(
+              (d) => (d.type ?? '').trim().toUpperCase().replaceAll('-', '_'),
+            )
+            .toSet();
     return [
       for (final t in requiredDocumentTypes)
         if (!have.contains(t)) t,
@@ -225,24 +288,24 @@ class StoreProfile {
   /// Only non-empty fields are sent so a partial edit never blanks a value the
   /// vendor did not touch.
   Map<String, dynamic> toBody() => {
-        'storeName': _v(name),
-        'description': _v(description),
-        'logo': _v(logo),
-        'email': _v(email),
-        'phone': _v(phone),
-        'facebook': _v(facebook),
-        'instagram': _v(instagram),
-        'twitter': _v(twitter),
-        'website': _v(website),
-        'street': _v(street),
-        'city': _v(city),
-        'state': _v(state),
-        'country': _v(country),
-        'postalCode': _v(postalCode),
-        'deliveryNote': _v(deliveryNote),
-        'deliveryFee': deliveryFee,
-        'deliveryTime': _v(deliveryTime),
-      }..removeWhere((_, v) => v == null);
+    'storeName': _v(name),
+    'description': _v(description),
+    'logo': _v(logo),
+    'email': _v(email),
+    'phone': _v(phone),
+    'facebook': _v(facebook),
+    'instagram': _v(instagram),
+    'twitter': _v(twitter),
+    'website': _v(website),
+    'street': _v(street),
+    'city': _v(city),
+    'state': _v(state),
+    'country': _v(country),
+    'postalCode': _v(postalCode),
+    'deliveryNote': _v(deliveryNote),
+    'deliveryFee': deliveryFee,
+    'deliveryTime': _v(deliveryTime),
+  }..removeWhere((_, v) => v == null);
 
   static Object? _v(String? s) {
     final t = (s ?? '').trim();
@@ -285,22 +348,34 @@ class VendorActivity {
     return VendorActivity(
       id: j['_id'] ?? j['id'] ?? j['entryId'],
       type: j['type'] ?? j['activityType'] ?? j['entryType'] ?? j['category'],
-      title: j['title'] ?? j['event'] ?? j['name'] ?? j['narration'] ?? j['description'],
+      title:
+          j['title'] ??
+          j['event'] ??
+          j['name'] ??
+          j['narration'] ??
+          j['description'],
       description: j['description'] ?? j['details'] ?? j['note'],
       amount: (j['amount'] ?? j['value'] ?? j['total']) as num?,
       status: j['status'],
-      reference: _ref(j['order']) ??
+      reference:
+          _ref(j['order']) ??
           _ref(j['payout']) ??
           _ref(j['relatedOrder']) ??
           j['reference']?.toString() ??
           j['orderNumber']?.toString(),
-      product: product is Map ? (product['name'] ?? product['_id'])?.toString() : product?.toString(),
+      product:
+          product is Map
+              ? (product['name'] ?? product['_id'])?.toString()
+              : product?.toString(),
       date: parseDate(j['createdAt'] ?? j['date'] ?? j['timestamp']),
       raw: j,
     );
   }
 
-  static String? _ref(dynamic v) => v is Map ? (v['orderNumber'] ?? v['_id'] ?? v['reference'])?.toString() : v?.toString();
+  static String? _ref(dynamic v) =>
+      v is Map
+          ? (v['orderNumber'] ?? v['_id'] ?? v['reference'])?.toString()
+          : v?.toString();
 
   /// Activity groups offered by the history filter.
   static const buckets = <String>['ORDERS', 'PAYOUTS', 'INVENTORY'];
@@ -310,10 +385,17 @@ class VendorActivity {
   /// order event, which is the most common kind of entry.
   String get bucket {
     final t = (type ?? '').toLowerCase();
-    if (t.contains('payout') || t.contains('payment') || t.contains('settle') || t.contains('transaction')) {
+    if (t.contains('payout') ||
+        t.contains('payment') ||
+        t.contains('settle') ||
+        t.contains('transaction')) {
       return 'PAYOUTS';
     }
-    if (t.contains('stock') || t.contains('inventory') || t.contains('product')) return 'INVENTORY';
+    if (t.contains('stock') ||
+        t.contains('inventory') ||
+        t.contains('product')) {
+      return 'INVENTORY';
+    }
     return 'ORDERS';
   }
 
@@ -345,19 +427,147 @@ class VendorStats {
   num? pendingPayout;
 
   factory VendorStats.fromJson(Map<String, dynamic> j) {
-    final overview = j['overview'] is Map ? Map<String, dynamic>.from(j['overview']) : j;
+    final overview =
+        j['overview'] is Map ? Map<String, dynamic>.from(j['overview']) : j;
     return VendorStats(
-      dailySales: (overview['dailySales'] ?? overview['todaySales'] ?? overview['salesToday'] ?? overview['revenue'] ?? overview['sales']) as num?,
-      salesDelta: (overview['salesDelta'] ?? overview['salesChange'] ?? overview['revenueChange']) as num?,
-      activeOrders: (overview['activeOrders'] ?? overview['openOrders'] ?? overview['orders'] ?? overview['pendingOrders']) as num?,
-      lowStock: (overview['lowStock'] ?? overview['lowStockProducts'] ?? overview['lowStockAlerts'] ?? overview['outOfStock']) as num?,
-      rating: (overview['rating'] ?? overview['averageRating'] ?? overview['storeRating'])?.toDouble(),
-      ratingCount: _int(overview['ratingCount'] ?? overview['totalRatings'] ?? overview['reviewsCount']),
-      totalProducts: (overview['totalProducts'] ?? overview['productCount']) as num?,
+      dailySales:
+          (overview['dailySales'] ??
+                  overview['todaySales'] ??
+                  overview['salesToday'] ??
+                  overview['revenue'] ??
+                  overview['sales'])
+              as num?,
+      salesDelta:
+          (overview['salesDelta'] ??
+                  overview['salesChange'] ??
+                  overview['revenueChange'])
+              as num?,
+      activeOrders:
+          (overview['activeOrders'] ??
+                  overview['openOrders'] ??
+                  overview['orders'] ??
+                  overview['pendingOrders'])
+              as num?,
+      lowStock:
+          (overview['lowStock'] ??
+                  overview['lowStockProducts'] ??
+                  overview['lowStockAlerts'] ??
+                  overview['outOfStock'])
+              as num?,
+      rating:
+          (overview['rating'] ??
+                  overview['averageRating'] ??
+                  overview['storeRating'])
+              ?.toDouble(),
+      ratingCount: _int(
+        overview['ratingCount'] ??
+            overview['totalRatings'] ??
+            overview['reviewsCount'],
+      ),
+      totalProducts:
+          (overview['totalProducts'] ?? overview['productCount']) as num?,
       totalOrders: (overview['totalOrders'] ?? overview['ordersCount']) as num?,
-      pendingPayout: (overview['pendingPayout'] ?? overview['pendingPayouts'] ?? overview['balance']) as num?,
+      pendingPayout:
+          (overview['pendingPayout'] ??
+                  overview['pendingPayouts'] ??
+                  overview['balance'])
+              as num?,
     );
   }
 
-  static int? _int(dynamic v) => v is int ? v : (v is num ? v.toInt() : (v is String ? int.tryParse(v) : null));
+  static int? _int(dynamic v) =>
+      v is int
+          ? v
+          : (v is num ? v.toInt() : (v is String ? int.tryParse(v) : null));
+}
+
+/// The vendor's own withdrawable balance, as returned by
+/// `GET /payouts/balance`.
+class VendorPayoutBalance {
+  VendorPayoutBalance({
+    this.availableBalance = 0,
+    this.pendingBalance = 0,
+    this.totalEarned = 0,
+    this.totalWithdrawn = 0,
+    this.currency = 'RWF',
+    this.minimumPayout = 10000,
+    this.lastPayoutAt,
+  });
+
+  final num availableBalance;
+  final num pendingBalance;
+  final num totalEarned;
+  final num totalWithdrawn;
+  final String currency;
+  final num minimumPayout;
+  final DateTime? lastPayoutAt;
+
+  factory VendorPayoutBalance.fromJson(Map<String, dynamic> j) {
+    // The API wraps the numbers in a `balance` object, but tolerate a flat body
+    // so a future backend revision does not blank the page.
+    final b = j['balance'] is Map ? Map<String, dynamic>.from(j['balance']) : j;
+    num n(dynamic v) => v is num ? v : (v is String ? num.tryParse(v) ?? 0 : 0);
+    return VendorPayoutBalance(
+      availableBalance: n(
+        b['availableBalance'] ?? b['available'] ?? b['balance'],
+      ),
+      pendingBalance: n(b['pendingBalance'] ?? b['pending']),
+      totalEarned: n(b['totalEarned'] ?? b['earned'] ?? b['total']),
+      totalWithdrawn: n(b['totalWithdrawn'] ?? b['withdrawn']),
+      currency: b['currency']?.toString() ?? 'RWF',
+      minimumPayout:
+          n(b['minimumPayout'] ?? b['minPayout']) == 0
+              ? 10000
+              : n(b['minimumPayout'] ?? b['minPayout']),
+      lastPayoutAt: parseDate(b['lastPayoutAt'] ?? b['lastPayout']),
+    );
+  }
+}
+
+/// A wholesale purchase the vendor has placed, from
+/// `GET /wholesale/orders/mine`.
+class WholesaleOrder {
+  WholesaleOrder({
+    this.id,
+    this.orderNumber,
+    this.supplier,
+    this.items = 0,
+    this.total,
+    this.status,
+    this.createdAt,
+  });
+
+  final String? id;
+  final String? orderNumber;
+  final String? supplier;
+  final int items;
+  final num? total;
+  final String? status;
+  final DateTime? createdAt;
+
+  String get display => orderNumber ?? id ?? 'Wholesale order';
+
+  factory WholesaleOrder.fromJson(Map<String, dynamic> j) {
+    final sup = j['supplier'];
+    final rawItems = j['items'] ?? j['products'] ?? j['lineItems'];
+    int count(dynamic v) {
+      if (v is List) return v.length;
+      if (v is num) return v.toInt();
+      if (v is String) return int.tryParse(v) ?? 0;
+      return 0;
+    }
+
+    return WholesaleOrder(
+      id: j['_id']?.toString() ?? j['id']?.toString(),
+      orderNumber: j['orderNumber']?.toString() ?? j['reference']?.toString(),
+      supplier:
+          sup is Map
+              ? (sup['businessName'] ?? sup['name'])?.toString()
+              : sup?.toString(),
+      items: count(rawItems),
+      total: (j['total'] ?? j['totalAmount'] ?? j['amount']) as num?,
+      status: j['status']?.toString(),
+      createdAt: parseDate(j['createdAt'] ?? j['orderedAt']),
+    );
+  }
 }

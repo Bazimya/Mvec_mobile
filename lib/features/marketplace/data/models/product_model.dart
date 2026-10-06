@@ -25,7 +25,10 @@ class Product {
     this.isOnSale = false,
   });
 
-  final int id;
+  /// Backend identifier. Kept as a string because Mongo/UUID ids do not fit in
+  /// an `int`; parsing them as numbers collapsed every id to `0`, which merged
+  /// distinct products in lists and sent the wrong id to `/cart`.
+  final String id;
   final String name;
   final String slug;
   final String description;
@@ -39,9 +42,9 @@ class Product {
   final double rating;
   final int ratingCount;
   final List<String> badges;
-  final int? categoryId;
+  final String? categoryId;
   final String? categoryName;
-  final int? vendorId;
+  final String? vendorId;
   final String? vendorName;
   final bool isFeatured;
   final bool isOnSale;
@@ -74,7 +77,7 @@ class Product {
             : null);
 
     return Product(
-      id: _toInt(json['id']),
+      id: _toId(json['id']),
       name: _toString(json['name']),
       slug: _toString(json['slug']),
       description: _toString(json['description']),
@@ -91,14 +94,14 @@ class Product {
           ? (json['badges'] as List<dynamic>).map((e) => e.toString()).toList()
           : const <String>[],
       categoryId: category is Map
-          ? _toIntOrNull(category['id'])
-          : _toIntOrNull(json['category_id']),
+          ? _toIdOrNull(category['id'])
+          : _toIdOrNull(json['category_id']),
       categoryName: category is Map
           ? category['name']?.toString()
           : json['category_name']?.toString(),
       vendorId: vendor is Map
-          ? _toIntOrNull(vendor['id'])
-          : _toIntOrNull(json['vendor_id']),
+          ? _toIdOrNull(vendor['id'])
+          : _toIdOrNull(json['vendor_id']),
       vendorName: vendor is Map
           ? vendor['name']?.toString()
           : json['vendor_name']?.toString(),
@@ -145,7 +148,10 @@ class Product {
       ? value.toInt()
       : int.tryParse(value?.toString() ?? '') ?? 0;
 
-  static int? _toIntOrNull(dynamic value) => value is num
-      ? value.toInt()
-      : int.tryParse(value?.toString() ?? '');
+  static String _toId(dynamic value) => value?.toString() ?? '';
+
+  static String? _toIdOrNull(dynamic value) {
+    final id = value?.toString();
+    return (id == null || id.isEmpty) ? null : id;
+  }
 }

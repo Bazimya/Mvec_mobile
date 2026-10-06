@@ -21,7 +21,12 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
 
   void _setPage(int page) {
     setState(() {
-      _query = PartyQuery(page: page, status: _query.status, verification: _query.verification, search: _query.search);
+      _query = PartyQuery(
+        page: page,
+        status: _query.status,
+        verification: _query.verification,
+        search: _query.search,
+      );
     });
   }
 
@@ -36,14 +41,16 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
           title: 'Suppliers',
           subtitle: 'Review supplier records, verification and account status.',
         ),
-        const InfoBox('Supplier account data is protected — business details are view-only through the profile.'),
+        const InfoBox(
+          'Supplier account data is protected — business details are view-only through the profile.',
+        ),
         const SizedBox(height: 18),
         switch (suppliersAsync) {
           AsyncLoading() => const LoadingState(),
           AsyncError(:final error) => ErrorState(
-              message: friendlyError(error),
-              onRetry: () => ref.invalidate(suppliersProvider(_query)),
-            ),
+            message: friendlyError(error),
+            onRetry: () => ref.invalidate(suppliersProvider(_query)),
+          ),
           AsyncData(:final value) => _table(value),
           _ => const LoadingState(),
         },
@@ -52,14 +59,22 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
   }
 
   Widget _table(Paged<PartyRecord> paged) {
-    final rows = paged.items.map((p) => {
-          '_record': p,
-          'supplier': p.display,
-          'category': p.category ?? '—',
-          'products': '${p.productCount ?? p.products ?? 0}',
-          'rating': p.rating == null ? '—' : '★ ${p.rating!.toStringAsFixed(1)}',
-          'status': StatusChip(p.effectiveStatus),
-        }).toList();
+    final rows =
+        paged.items
+            .map(
+              (p) => {
+                '_record': p,
+                'supplier': p.display,
+                'category': p.category ?? '—',
+                'products': '${p.productCount ?? p.products ?? 0}',
+                'rating':
+                    p.rating == null
+                        ? '—'
+                        : '★ ${p.rating!.toStringAsFixed(1)}',
+                'status': StatusChip(p.effectiveStatus),
+              },
+            )
+            .toList();
 
     return SmartTable(
       columns: const [
@@ -72,14 +87,25 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
       rows: rows,
       actionsLabel: '',
       filterKey: 'status',
-      filterOptions: const ['ACTIVE', 'SUSPENDED', 'BLOCKED', 'UNDER_REVIEW', 'VERIFIED', 'PENDING'],
+      filterOptions: const [
+        'ACTIVE',
+        'SUSPENDED',
+        'BLOCKED',
+        'UNDER_REVIEW',
+        'VERIFIED',
+        'PENDING',
+      ],
       pageSize: 8,
       serverPage: _query.page,
       serverTotalPages: paged.pages ?? 1,
       onServerPageChanged: _setPage,
       rowActions: (row) {
         final p = row['_record'] as PartyRecord;
-        return TableActionBtn(icon: 'eye', tooltip: 'View', onPressed: () => _showProfile(p));
+        return TableActionBtn(
+          icon: 'eye',
+          tooltip: 'View',
+          onPressed: () => _showProfile(p),
+        );
       },
     );
   }
@@ -97,9 +123,22 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(p.display, style: const TextStyle(fontFamily: 'Manrope', fontSize: 16, fontWeight: FontWeight.w800)),
+                  Text(
+                    p.display,
+                    style: const TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(p.category ?? p.location ?? '—', style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor)),
+                  Text(
+                    p.category ?? p.location ?? '—',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).hintColor,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -112,26 +151,79 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
             MapEntry('Supplier', p.display),
             MapEntry('Category', p.category ?? '—'),
             MapEntry('Products', '${p.productCount ?? p.products ?? 0}'),
-            MapEntry('Rating', p.rating == null ? '—' : '★ ${p.rating!.toStringAsFixed(1)}'),
+            MapEntry(
+              'Rating',
+              p.rating == null ? '—' : '★ ${p.rating!.toStringAsFixed(1)}',
+            ),
             MapEntry('ID', p.id ?? '—'),
-            if (p.location != null && p.location!.isNotEmpty) MapEntry('Location', p.location!),
+            if (p.location != null && p.location!.isNotEmpty)
+              MapEntry('Location', p.location!),
           ],
         ),
       ],
       footer: Row(
         children: [
-          Expanded(child: GradientButton(label: 'Verify', expanded: true, onPressed: () => _verify(p))),
+          Expanded(
+            child: GradientButton(
+              label: 'Verify',
+              expanded: true,
+              onPressed: () => _verify(p),
+            ),
+          ),
           const SizedBox(width: 10),
-          Expanded(child: OutlineMvButton(label: 'Approve status', onPressed: () => _approve(p))),
+          Expanded(
+            child: OutlineMvButton(
+              label: 'Approve status',
+              onPressed: () => _approve(p),
+            ),
+          ),
+          const SizedBox(width: 10),
+          IconButton(
+            tooltip: 'Change account status',
+            onPressed: () => _changeStatus(p),
+            icon: const Icon(Icons.manage_accounts_outlined),
+          ),
         ],
       ),
     );
   }
 
+  Future<void> _changeStatus(PartyRecord party) async {
+    const statuses = ['ACTIVE', 'SUSPENDED', 'BLOCKED', 'UNDER_REVIEW'];
+    final selected = await showDialog<String>(
+      context: context,
+      builder:
+          (dialogContext) => SimpleDialog(
+            title: const Text('Supplier account status'),
+            children: [
+              for (final status in statuses)
+                SimpleDialogOption(
+                  onPressed: () => Navigator.pop(dialogContext, status),
+                  child: Text(titleCase(status)),
+                ),
+            ],
+          ),
+    );
+    if (selected == null || !mounted) return;
+    try {
+      await ref
+          .read(adminServiceProvider)
+          .supplierStatus(party.id ?? '', selected);
+      if (!mounted) return;
+      Navigator.pop(context);
+      ref.invalidate(suppliersProvider(_query));
+      showMvSnack(context, 'Supplier status updated', success: true);
+    } catch (e) {
+      if (mounted) showMvSnack(context, friendlyError(e));
+    }
+  }
+
   Future<void> _verify(PartyRecord p) async {
     final ctx = context;
     try {
-      await ref.read(adminServiceProvider).supplierVerify(p.id ?? '', 'VERIFIED');
+      await ref
+          .read(adminServiceProvider)
+          .supplierVerify(p.id ?? '', 'VERIFIED');
       if (ctx.mounted) {
         Navigator.pop(ctx);
         showMvSnack(ctx, 'Supplier verified', success: true);
@@ -158,9 +250,19 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
 }
 
 Widget _avatar(String name) => Container(
-      width: 44,
-      height: 44,
-      decoration: const BoxDecoration(gradient: MvColors.gradient, shape: BoxShape.circle),
-      alignment: Alignment.center,
-      child: Text(initials(name), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
-    );
+  width: 44,
+  height: 44,
+  decoration: const BoxDecoration(
+    gradient: MvColors.gradient,
+    shape: BoxShape.circle,
+  ),
+  alignment: Alignment.center,
+  child: Text(
+    initials(name),
+    style: const TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w800,
+      color: Colors.white,
+    ),
+  ),
+);

@@ -25,7 +25,7 @@ class OverviewScreen extends ConsumerWidget {
 
     final summary = summaryAsync.when(
       data: (s) => s,
-      error: (_, __) => ReportSummary(grossSales: 0, orders: 0, customers: 0, activeVendors: 0),
+      error: (_, __) => null,
       loading: () => null,
     );
 
@@ -35,7 +35,8 @@ class OverviewScreen extends ConsumerWidget {
         PageHead(
           eyebrow: 'SUPER ADMIN DASHBOARD',
           title: 'Good morning, Administrator 👋',
-          subtitle: 'Monitor the entire MVEC marketplace from one control center.',
+          subtitle:
+              'Monitor the entire MVEC marketplace from one control center.',
           actions: [
             IconButton(
               onPressed: () => context.push('/admin/notifications'),
@@ -52,8 +53,18 @@ class OverviewScreen extends ConsumerWidget {
                       height: 16,
                       constraints: const BoxConstraints(minWidth: 16),
                       alignment: Alignment.center,
-                      decoration: const BoxDecoration(color: MvColors.badgeRed, borderRadius: BorderRadius.all(Radius.circular(9))),
-                      child: const Text('5', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white)),
+                      decoration: const BoxDecoration(
+                        color: MvColors.badgeRed,
+                        borderRadius: BorderRadius.all(Radius.circular(9)),
+                      ),
+                      child: const Text(
+                        '5',
+                        style: TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -66,25 +77,59 @@ class OverviewScreen extends ConsumerWidget {
             ),
           ],
         ),
-        _metricRow(
-          [
-            MetricCard(label: 'Gross sales', value: summary == null ? '—' : money(summary.grossSales), icon: 'wallet'),
-            MetricCard(label: 'Orders', value: summary == null ? '—' : money(summary.orders), icon: 'cart'),
-            MetricCard(label: 'Customers', value: summary == null ? '—' : numFmt(summary.customers), icon: 'users'),
-            MetricCard(label: 'Vendors', value: summary == null ? '—' : numFmt(summary.activeVendors), icon: 'shop'),
-          ],
-        ),
+        _metricRow([
+          MetricCard(
+            label: 'Gross sales',
+            value: summary == null ? '—' : money(summary.grossSales),
+            icon: 'wallet',
+          ),
+          MetricCard(
+            label: 'Orders',
+            value: summary == null ? '—' : money(summary.orders),
+            icon: 'cart',
+          ),
+          MetricCard(
+            label: 'Customers',
+            value: summary == null ? '—' : numFmt(summary.customers),
+            icon: 'users',
+          ),
+          MetricCard(
+            label: 'Vendors',
+            value: summary == null ? '—' : numFmt(summary.activeVendors),
+            icon: 'shop',
+          ),
+        ]),
         const SizedBox(height: 16),
         _pair(
           _RevenueTodayCard(summary: summary, productsAsync: productsAsync),
-          const DataCard(
-            title: 'Platform activity',
+          DataCard(
+            title: 'Loaded records',
             child: Column(
               children: [
-                ActivityRow(label: 'Vendor approvals', value: '6 pending', status: 'WARNING'),
-                ActivityRow(label: 'Product moderation', value: '14 pending', status: 'WARNING'),
-                ActivityRow(label: 'Payment success', value: '96.8%', status: 'ACTIVE'),
-                ActivityRow(label: 'Disputes', value: '3 open', status: 'WARNING'),
+                ActivityRow(
+                  label: 'Orders',
+                  value:
+                      ordersAsync.valueOrNull == null
+                          ? '—'
+                          : '${ordersAsync.valueOrNull!.length}',
+                  status: ordersAsync.hasError ? 'WARNING' : 'ACTIVE',
+                ),
+                ActivityRow(
+                  label: 'Products',
+                  value:
+                      productsAsync.valueOrNull == null
+                          ? '—'
+                          : '${productsAsync.valueOrNull!.length}',
+                  status: productsAsync.hasError ? 'WARNING' : 'ACTIVE',
+                ),
+                ActivityRow(
+                  label: 'Categories',
+                  value:
+                      categoriesAsync.valueOrNull == null
+                          ? '—'
+                          : '${categoriesAsync.valueOrNull!.length}',
+                  status: categoriesAsync.hasError ? 'WARNING' : 'ACTIVE',
+                ),
               ],
             ),
           ),
@@ -155,16 +200,30 @@ class OverviewScreen extends ConsumerWidget {
                   color: MvColors.metricIconBg,
                   borderRadius: BorderRadius.all(Radius.circular(9)),
                 ),
-                child: Center(child: MvIcon(icon, size: 18, color: MvColors.primaryDeep)),
+                child: Center(
+                  child: MvIcon(icon, size: 18, color: MvColors.primaryDeep),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor)),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).hintColor,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -197,7 +256,12 @@ class OverviewScreen extends ConsumerWidget {
               children: [
                 Expanded(child: children[i]),
                 const SizedBox(width: 14),
-                Expanded(child: i + 1 < children.length ? children[i + 1] : const SizedBox()),
+                Expanded(
+                  child:
+                      i + 1 < children.length
+                          ? children[i + 1]
+                          : const SizedBox(),
+                ),
               ],
             ),
           );
@@ -228,7 +292,10 @@ class OverviewScreen extends ConsumerWidget {
     );
   }
 
-  Widget _recentOrdersCard(BuildContext context, AsyncValue<List<OrderRecord>> ordersAsync) {
+  Widget _recentOrdersCard(
+    BuildContext context,
+    AsyncValue<List<OrderRecord>> ordersAsync,
+  ) {
     return DataCard(
       title: 'Recent orders',
       trailing: TextButton(
@@ -237,7 +304,8 @@ class OverviewScreen extends ConsumerWidget {
       ),
       child: ordersAsync.when(
         loading: () => const LoadingState(),
-        error: (_, __) => const EmptyState(message: 'Orders could not be loaded'),
+        error:
+            (_, __) => const EmptyState(message: 'Orders could not be loaded'),
         data: (orders) {
           if (orders.isEmpty) return const EmptyState(message: 'No orders yet');
           final top = orders.take(6).toList();
@@ -272,13 +340,22 @@ class OverviewScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(order.display, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                Text(
+                  order.display,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
                   '${order.buyer ?? '—'} · ${order.vendor ?? '—'}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11.5, color: Theme.of(context).hintColor),
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: Theme.of(context).hintColor,
+                  ),
                 ),
               ],
             ),
@@ -300,7 +377,10 @@ class OverviewScreen extends ConsumerWidget {
     );
   }
 
-  Widget _categoryHealthCard(BuildContext context, AsyncValue<List<CategoryRecord>> categoriesAsync) {
+  Widget _categoryHealthCard(
+    BuildContext context,
+    AsyncValue<List<CategoryRecord>> categoriesAsync,
+  ) {
     return DataCard(
       title: 'Category health',
       trailing: TextButton(
@@ -309,9 +389,13 @@ class OverviewScreen extends ConsumerWidget {
       ),
       child: categoriesAsync.when(
         loading: () => const LoadingState(),
-        error: (_, __) => const EmptyState(message: 'Categories could not be loaded'),
+        error:
+            (_, __) =>
+                const EmptyState(message: 'Categories could not be loaded'),
         data: (categories) {
-          if (categories.isEmpty) return const EmptyState(message: 'No categories yet');
+          if (categories.isEmpty) {
+            return const EmptyState(message: 'No categories yet');
+          }
           final maxProducts = categories.fold<int>(0, (m, c) {
             final p = c.products ?? 0;
             return p > m ? p : m;
@@ -343,7 +427,8 @@ class _RevenueTodayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final count = productsAsync?.when(
+    final count =
+        productsAsync?.when(
           data: (p) => '${p.length}',
           error: (_, __) => '—',
           loading: () => '…',
@@ -351,21 +436,36 @@ class _RevenueTodayCard extends StatelessWidget {
         '—';
     final commission = summary == null ? '—' : money(summary!.commission);
     return DataCard(
-      title: 'MVEC revenue today',
+      title: 'Platform snapshot',
       child: Row(
         children: [
           Expanded(
-            child: _innerMetric(context, label: 'Commission earned', value: commission, icon: 'wallet'),
+            child: _innerMetric(
+              context,
+              label: 'Commission · 7 days',
+              value: commission,
+              icon: 'wallet',
+            ),
           ),
           Expanded(
-            child: _innerMetric(context, label: 'Products listed', value: count, icon: 'box'),
+            child: _innerMetric(
+              context,
+              label: 'Products listed',
+              value: count,
+              icon: 'box',
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _innerMetric(BuildContext context, {required String label, required String value, required String icon}) {
+  Widget _innerMetric(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required String icon,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -382,7 +482,10 @@ class _RevenueTodayCard extends StatelessWidget {
         const SizedBox(height: 8),
         Text(value, style: GoogleFontsManrope.metricValue),
         const SizedBox(height: 2),
-        Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor)),
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor),
+        ),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/theme.dart';
 import '../../../../core/utils.dart';
@@ -16,7 +17,8 @@ class AffiliateLinksScreen extends ConsumerStatefulWidget {
   const AffiliateLinksScreen({super.key});
 
   @override
-  ConsumerState<AffiliateLinksScreen> createState() => _AffiliateLinksScreenState();
+  ConsumerState<AffiliateLinksScreen> createState() =>
+      _AffiliateLinksScreenState();
 }
 
 class _AffiliateLinksScreenState extends ConsumerState<AffiliateLinksScreen> {
@@ -25,10 +27,16 @@ class _AffiliateLinksScreenState extends ConsumerState<AffiliateLinksScreen> {
   Future<void> _toggle(AffiliateLink l, bool active) async {
     setState(() => _busyId = l.id);
     try {
-      await ref.read(affiliateServiceProvider).setLinkActive(l.id ?? '', active);
+      await ref
+          .read(affiliateServiceProvider)
+          .setLinkActive(l.id ?? '', active);
       if (!mounted) return;
       ref.invalidate(affiliateLinksProvider);
-      showMvSnack(context, active ? 'Link activated' : 'Link paused', success: true);
+      showMvSnack(
+        context,
+        active ? 'Link activated' : 'Link paused',
+        success: true,
+      );
     } catch (e) {
       if (!mounted) return;
       showMvSnack(context, friendlyError(e));
@@ -40,14 +48,26 @@ class _AffiliateLinksScreenState extends ConsumerState<AffiliateLinksScreen> {
   Future<void> _delete(AffiliateLink l) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete link?'),
-        content: Text('This removes the link "${l.target}" and stops tracking.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: MvColors.errorText))),
-        ],
-      ),
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Delete link?'),
+            content: Text(
+              'This removes the link "${l.target}" and stops tracking.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: MvColors.errorText),
+                ),
+              ),
+            ],
+          ),
     );
     if (ok != true || !mounted) return;
     setState(() => _busyId = l.id);
@@ -66,7 +86,9 @@ class _AffiliateLinksScreenState extends ConsumerState<AffiliateLinksScreen> {
 
   Future<void> _createGeneral() async {
     try {
-      final link = await ref.read(affiliateServiceProvider).generateLink(label: 'General promotion');
+      final link = await ref
+          .read(affiliateServiceProvider)
+          .generateLink(label: 'General promotion');
       if (!mounted) return;
       ref.invalidate(affiliateLinksProvider);
       showMvSnack(context, 'Link created', success: true);
@@ -74,7 +96,10 @@ class _AffiliateLinksScreenState extends ConsumerState<AffiliateLinksScreen> {
         context,
         title: 'General referral link',
         children: [
-          VerifiedBox('Ready to share', 'This link routes people to the storefront with your referral code.'),
+          VerifiedBox(
+            'Ready to share',
+            'This link routes people to the storefront with your referral code.',
+          ),
           const SizedBox(height: 16),
           ReferralCodeCard(profile: AffiliateProfile(referralCode: link.code)),
         ],
@@ -96,15 +121,27 @@ class _AffiliateLinksScreenState extends ConsumerState<AffiliateLinksScreen> {
           title: 'My Links',
           subtitle: 'Manage your referral links and track performance.',
           actions: [
-            GradientButton(label: 'General link', icon: 'plus', onPressed: _createGeneral),
+            GradientButton(
+              label: 'General link',
+              icon: 'plus',
+              onPressed: _createGeneral,
+            ),
           ],
         ),
         async.when(
           loading: () => const LoadingState(),
-          error: (e, _) => ErrorState(message: friendlyError(e), onRetry: () => ref.invalidate(affiliateLinksProvider)),
+          error:
+              (e, _) => ErrorState(
+                message: friendlyError(e),
+                onRetry: () => ref.invalidate(affiliateLinksProvider),
+              ),
           data: (links) {
             if (links.isEmpty) {
-              return const DataCard(child: EmptyState(message: 'You have no links yet — create your first one'));
+              return const DataCard(
+                child: EmptyState(
+                  message: 'You have no links yet — create your first one',
+                ),
+              );
             }
             return Column(
               children: [
@@ -136,17 +173,45 @@ class _AffiliateLinksScreenState extends ConsumerState<AffiliateLinksScreen> {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(color: MvColors.metricIconBg, borderRadius: BorderRadius.circular(9)),
-                  child: Center(child: MvIcon('tag', size: 18, color: l.isActive ? MvColors.primaryDeep : Theme.of(context).hintColor)),
+                  decoration: BoxDecoration(
+                    color: MvColors.metricIconBg,
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  child: Center(
+                    child: MvIcon(
+                      'tag',
+                      size: 18,
+                      color:
+                          l.isActive
+                              ? MvColors.primaryDeep
+                              : Theme.of(context).hintColor,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(l.target, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                      Text(
+                        l.target,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      Text(l.label ?? l.code ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: isDark ? MvColors.darkMuted : MvColors.muted)),
+                      Text(
+                        l.label ?? l.code ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? MvColors.darkMuted : MvColors.muted,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -163,13 +228,33 @@ class _AffiliateLinksScreenState extends ConsumerState<AffiliateLinksScreen> {
               borderRadius: BorderRadius.circular(6),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(color: isDark ? MvColors.darkSurface2 : MvColors.surface2, borderRadius: BorderRadius.circular(6)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark ? MvColors.darkSurface2 : MvColors.surface2,
+                  borderRadius: BorderRadius.circular(6),
+                ),
                 child: Row(
                   children: [
-                    MvIcon('copy', size: 13, color: isDark ? MvColors.darkMuted : MvColors.muted),
+                    MvIcon(
+                      'copy',
+                      size: 13,
+                      color: isDark ? MvColors.darkMuted : MvColors.muted,
+                    ),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(l.shareUrl, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: isDark ? MvColors.darkMuted : MvColors.muted))),
+                    Expanded(
+                      child: Text(
+                        l.shareUrl,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? MvColors.darkMuted : MvColors.muted,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -191,8 +276,16 @@ class _AffiliateLinksScreenState extends ConsumerState<AffiliateLinksScreen> {
                 Expanded(
                   child: Text(
                     'Created ${shortDate(l.createdAt)}${l.lastClickedAt != null ? ' · last click ${shortDate(l.lastClickedAt)}' : ''}',
-                    style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).hintColor,
+                    ),
                   ),
+                ),
+                IconButton(
+                  onPressed: () => Share.share(l.shareUrl),
+                  tooltip: 'Share link',
+                  icon: const Icon(Icons.share_outlined, size: 18),
                 ),
                 IconButton(
                   onPressed: busy ? null : () => _delete(l),

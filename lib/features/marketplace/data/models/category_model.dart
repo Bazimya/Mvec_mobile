@@ -9,7 +9,8 @@ class Category {
     this.productCount = 0,
   });
 
-  final int id;
+  /// Backend identifier; see the note on `Product.id`.
+  final String id;
   final String name;
   final String slug;
   final String imageUrl;
@@ -18,7 +19,7 @@ class Category {
   factory Category.fromJson(Map<String, dynamic> json) {
     final media = json['media'];
     return Category(
-      id: _toInt(json['id']),
+      id: _toId(json['id']),
       name: _toString(json['name']),
       slug: _toString(json['slug']),
       imageUrl: media is Map
@@ -43,4 +44,6 @@ class Category {
   static int _toInt(dynamic value) => value is num
       ? value.toInt()
       : int.tryParse(value?.toString() ?? '') ?? 0;
+
+  static String _toId(dynamic value) => value?.toString() ?? '';
 }

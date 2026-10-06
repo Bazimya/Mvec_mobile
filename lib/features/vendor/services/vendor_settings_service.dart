@@ -3,7 +3,6 @@ import '../models/vendor_settings.dart';
 
 /// Contract for reading and changing the vendor's store configuration.
 abstract class VendorSettingsService {
-  bool get isDemo;
 
   Future<VendorStoreSettings> settings();
   Future<VendorStoreSettings> save(VendorStoreSettings settings);
@@ -23,9 +22,6 @@ class ApiVendorSettingsService implements VendorSettingsService {
   ApiVendorSettingsService(this._api);
 
   final ApiClient _api;
-
-  @override
-  bool get isDemo => false;
 
   @override
   Future<VendorStoreSettings> settings() async {

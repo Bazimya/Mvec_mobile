@@ -8,6 +8,7 @@ import '../../core/utils.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/vendor_providers.dart';
 import '../../widgets/mv_icon.dart';
+import '../../widgets/back_to_marketplace_button.dart';
 
 /// Vendor portal shell — a port of [AdminShell] with the same geometry:
 /// a sticky 60px top bar (search, theme, notifications, avatar), an accordion
@@ -146,6 +147,7 @@ class _VendorShellState extends ConsumerState<VendorShell> {
               ),
             ),
           ),
+          const BackToMarketplaceButton(iconOnly: true),
           IconButton(
             onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
             icon: MvIcon(isDark ? 'sun' : 'moon', color: ink),

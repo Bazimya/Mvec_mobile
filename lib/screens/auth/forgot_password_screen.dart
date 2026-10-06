@@ -44,14 +44,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       subtitle:
           'Enter the email or telephone linked to your MVEC account and we will send you a verification code.',
       compact: true,
-      topBar: Align(
-        alignment: Alignment.centerLeft,
-        child: IconButton(
-          tooltip: 'Back',
-          onPressed: auth.loading ? null : () => context.go('/login'),
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18),
-        ),
-      ),
+      onBack: auth.loading ? null : () => context.go('/login'),
+      onBackLabel: 'Back to login',
       footer: authLinkFooter(
         context,
         'Remember your password?',

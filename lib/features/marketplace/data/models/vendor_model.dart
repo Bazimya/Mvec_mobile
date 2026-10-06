@@ -15,7 +15,8 @@ class Vendor {
     this.isFeatured = false,
   });
 
-  final int id;
+  /// Backend identifier; see the note on `Product.id`.
+  final String id;
   final String name;
   final String slug;
   final String description;
@@ -30,7 +31,7 @@ class Vendor {
   factory Vendor.fromJson(Map<String, dynamic> json) {
     final media = json['media'];
     return Vendor(
-      id: _toInt(json['id']),
+      id: _toId(json['id']),
       name: _toString(json['name']),
       slug: _toString(json['slug']),
       description: _toString(json['description']),
@@ -73,4 +74,6 @@ class Vendor {
   static int _toInt(dynamic value) => value is num
       ? value.toInt()
       : int.tryParse(value?.toString() ?? '') ?? 0;
+
+  static String _toId(dynamic value) => value?.toString() ?? '';
 }

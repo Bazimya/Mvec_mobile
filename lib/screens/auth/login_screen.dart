@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/api_config.dart';
 import '../../providers/auth_provider.dart';
 import 'auth_validation.dart';
 import 'auth_widgets.dart';
@@ -143,20 +142,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                OutlinedButton.icon(
-                  onPressed: loading
-                      ? null
-                      : () {
-                          _identity.text = kAdminEmail;
-                          _password.text = kAdminPassword;
-                          _submit();
-                        },
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                  ),
-                  icon: const Icon(Icons.flash_on, size: 16),
-                  label: const Text('Fill admin credentials'),
-                ),
+
               ],
             ],
           ),

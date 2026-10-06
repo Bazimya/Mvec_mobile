@@ -1,10 +1,26 @@
 import 'package:flutter/foundation.dart' hide Category;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/category_model.dart';
 import '../../data/models/product_model.dart';
 import '../../data/models/vendor_model.dart';
+import '../../data/services/api_home_service.dart';
 import '../../data/services/home_service.dart';
-import '../../data/services/mock_home_service.dart';
+
+/// The marketplace home data source.
+///
+/// Production always resolves to [ApiHomeService]. Tests override this provider
+/// to serve fixtures rather than dialling the MVEC backend.
+final homeServiceProvider = Provider<HomeService>((ref) => ApiHomeService());
+
+/// The storefront home-feed state.
+///
+/// Exposed as a Riverpod provider so the data source stays substitutable, then
+/// handed to the `provider` package binding in `MvecApp` so screens can keep
+/// reading it as a plain [ChangeNotifier].
+final homeProviderProvider = Provider<HomeProvider>(
+  (ref) => HomeProvider(service: ref.watch(homeServiceProvider)),
+);
 
 /// Promotional banner shown inside the home feed carousel.
 class BannerItem {
@@ -109,14 +125,14 @@ class HomeFeed {
   }
 }
 
-/// State manager for the marketpce home feed.
+/// State manager for the marketplace home feed.
 ///
-/// Depends on an injected [HomeService] (defaults to [MockHomeService]) so the
-/// UI is decoupled from the data source and can switch to the real backend
-/// API later without any widget changes.
+/// Depends on an injected [HomeService] (defaults to [ApiHomeService], the live
+/// MVEC API) so the UI stays decoupled from the data source and tests can
+/// substitute their own implementation.
 class HomeProvider extends ChangeNotifier {
   HomeProvider({HomeService? service})
-      : _service = service ?? MockHomeService();
+    : _service = service ?? ApiHomeService();
 
   final HomeService _service;
 

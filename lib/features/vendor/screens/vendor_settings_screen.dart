@@ -182,7 +182,7 @@ class _SettingsEditorState extends ConsumerState<_SettingsEditor> {
             _field(_tin, 'Tax identification number'),
             if (_settings.shippingRules.isNotEmpty)
               DropdownButtonFormField<String>(
-                initialValue: _settings.defaultShippingRule?.id,
+                value: _settings.defaultShippingRule?.id,
                 decoration: const InputDecoration(
                   labelText: 'Default shipping rule',
                   border: OutlineInputBorder(),
@@ -564,10 +564,11 @@ class _SettingsEditorState extends ConsumerState<_SettingsEditor> {
                             labelText: 'Temporary password',
                             helperText: 'At least 8 characters',
                           ),
-                          validator: (value) =>
-                              value == null || value.length < 8
-                                  ? 'Use at least 8 characters'
-                                  : null,
+                          validator:
+                              (value) =>
+                                  value == null || value.length < 8
+                                      ? 'Use at least 8 characters'
+                                      : null,
                         ),
                         TextFormField(
                           controller: confirmPassword,
@@ -575,12 +576,14 @@ class _SettingsEditorState extends ConsumerState<_SettingsEditor> {
                           decoration: const InputDecoration(
                             labelText: 'Confirm password',
                           ),
-                          validator: (value) => value != password.text
-                              ? 'Passwords do not match'
-                              : null,
+                          validator:
+                              (value) =>
+                                  value != password.text
+                                      ? 'Passwords do not match'
+                                      : null,
                         ),
                         DropdownButtonFormField<StaffRole>(
-                          initialValue: role,
+                          value: role,
                           decoration: const InputDecoration(labelText: 'Role'),
                           items: [
                             for (final option in StaffRole.assignable)
@@ -627,18 +630,14 @@ class _SettingsEditorState extends ConsumerState<_SettingsEditor> {
                       onPressed: () {
                         if (formKey.currentState?.validate() == true) {
                           final member = VendorStaffMember(
-                            id:
-                                'staff-${DateTime.now().microsecondsSinceEpoch}',
+                            id: 'staff-${DateTime.now().microsecondsSinceEpoch}',
                             name: name.text.trim(),
                             email: email.text.trim(),
                             role: role,
                             permissions: permissions,
                             invitedAt: DateTime.now(),
                           );
-                          Navigator.pop(
-                            dialogContext,
-                            (member, password.text),
-                          );
+                          Navigator.pop(dialogContext, (member, password.text));
                         }
                       },
                       child: const Text('Invite'),
@@ -650,10 +649,9 @@ class _SettingsEditorState extends ConsumerState<_SettingsEditor> {
     if (invite != null && mounted) {
       setState(() => _busy = true);
       try {
-        final updated = await ref.read(vendorSettingsModuleProvider).inviteStaff(
-              member: invite.$1,
-              password: invite.$2,
-            );
+        final updated = await ref
+            .read(vendorSettingsModuleProvider)
+            .inviteStaff(member: invite.$1, password: invite.$2);
         if (mounted) {
           setState(() => _settings = updated);
           showMvSnack(context, 'Team member added', success: true);

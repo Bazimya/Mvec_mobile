@@ -12,22 +12,34 @@ import '../services/vendor_service.dart';
 /// Follows the admin providers' conventions: services are only reached through
 /// `ref.watch`, reads happen in `build`, mutations go through
 /// `ref.read(...notifier)` and then invalidate the affected list providers.
-final vendorServiceProvider = Provider<VendorService>((ref) => VendorService(ref.watch(apiProvider)));
+final vendorServiceProvider = Provider<VendorService>(
+  (ref) => VendorService(ref.watch(apiProvider)),
+);
 
 // ---------- Store profile + verification ----------
 
 /// The signed-in vendor's store. `null` means "no store yet" — the profile
 /// screen renders its setup form in that case.
-final myStoreProvider = FutureProvider.autoDispose<StoreProfile?>((ref) => ref.watch(vendorServiceProvider).myStore());
+final myStoreProvider = FutureProvider.autoDispose<StoreProfile?>(
+  (ref) => ref.watch(vendorServiceProvider).myStore(),
+);
 
 // ---------- Overview ----------
 
-final vendorStatsProvider = FutureProvider.autoDispose<VendorStats>((ref) => ref.watch(vendorServiceProvider).stats());
+final vendorStatsProvider = FutureProvider.autoDispose<VendorStats>(
+  (ref) => ref.watch(vendorServiceProvider).stats(),
+);
 
 /// Filter state for the unified activity history. Value equality matters: this
 /// is a `family` key, so two identical filters must collapse to one request.
 class VendorActivityQuery {
-  const VendorActivityQuery({this.page = 1, this.limit = 20, this.from, this.to, this.type = allTypes});
+  const VendorActivityQuery({
+    this.page = 1,
+    this.limit = 20,
+    this.from,
+    this.to,
+    this.type = allTypes,
+  });
 
   /// Sentinel for "every activity family" — never sent to the API.
   static const allTypes = 'ALL';
@@ -40,14 +52,20 @@ class VendorActivityQuery {
 
   bool get isFiltered => from != null || to != null || type != allTypes;
 
-  VendorActivityQuery copyWith({int? page, DateTime? from, DateTime? to, String? type, bool clearFrom = false, bool clearTo = false}) =>
-      VendorActivityQuery(
-        page: page ?? this.page,
-        limit: limit,
-        from: clearFrom ? null : (from ?? this.from),
-        to: clearTo ? null : (to ?? this.to),
-        type: type ?? this.type,
-      );
+  VendorActivityQuery copyWith({
+    int? page,
+    DateTime? from,
+    DateTime? to,
+    String? type,
+    bool clearFrom = false,
+    bool clearTo = false,
+  }) => VendorActivityQuery(
+    page: page ?? this.page,
+    limit: limit,
+    from: clearFrom ? null : (from ?? this.from),
+    to: clearTo ? null : (to ?? this.to),
+    type: type ?? this.type,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -62,21 +80,30 @@ class VendorActivityQuery {
   int get hashCode => Object.hash(page, limit, from, to, type);
 }
 
-final vendorActivityProvider = FutureProvider.autoDispose.family<Paged<VendorActivity>, VendorActivityQuery>(
-  (ref, q) => ref.watch(vendorServiceProvider).activity(
-        page: q.page,
-        limit: q.limit,
-        from: q.from,
-        to: q.to,
-        type: q.type == VendorActivityQuery.allTypes ? null : q.type,
-      ),
-);
+final vendorActivityProvider = FutureProvider.autoDispose
+    .family<Paged<VendorActivity>, VendorActivityQuery>(
+      (ref, q) => ref
+          .watch(vendorServiceProvider)
+          .activity(
+            page: q.page,
+            limit: q.limit,
+            from: q.from,
+            to: q.to,
+            type: q.type == VendorActivityQuery.allTypes ? null : q.type,
+          ),
+    );
 
 // ---------- Products ----------
 
 /// Filter state for the product list (search, availability, stock health).
 class VendorProductQuery {
-  const VendorProductQuery({this.page = 1, this.limit = 20, this.search = '', this.status = allStatuses, this.lowStockOnly = false});
+  const VendorProductQuery({
+    this.page = 1,
+    this.limit = 20,
+    this.search = '',
+    this.status = allStatuses,
+    this.lowStockOnly = false,
+  });
 
   /// Sentinel for "every availability status" — never sent to the API.
   static const allStatuses = 'ALL';
@@ -87,16 +114,22 @@ class VendorProductQuery {
   final String status;
   final bool lowStockOnly;
 
-  bool get isFiltered => search.isNotEmpty || status != allStatuses || lowStockOnly;
+  bool get isFiltered =>
+      search.isNotEmpty || status != allStatuses || lowStockOnly;
 
-  VendorProductQuery copyWith({int? page, String? search, String? status, bool? lowStockOnly, bool clearSearch = false}) =>
-      VendorProductQuery(
-        page: page ?? this.page,
-        limit: limit,
-        search: clearSearch ? '' : (search ?? this.search),
-        status: status ?? this.status,
-        lowStockOnly: lowStockOnly ?? this.lowStockOnly,
-      );
+  VendorProductQuery copyWith({
+    int? page,
+    String? search,
+    String? status,
+    bool? lowStockOnly,
+    bool clearSearch = false,
+  }) => VendorProductQuery(
+    page: page ?? this.page,
+    limit: limit,
+    search: clearSearch ? '' : (search ?? this.search),
+    status: status ?? this.status,
+    lowStockOnly: lowStockOnly ?? this.lowStockOnly,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -111,19 +144,106 @@ class VendorProductQuery {
   int get hashCode => Object.hash(page, limit, search, status, lowStockOnly);
 }
 
-final vendorProductsProvider = FutureProvider.autoDispose.family<Paged<VendorProduct>, VendorProductQuery>(
-  (ref, q) => ref.watch(vendorServiceProvider).products(
-        page: q.page,
-        limit: q.limit,
-        search: q.search,
-        status: q.status == VendorProductQuery.allStatuses ? null : q.status,
-        lowStockOnly: q.lowStockOnly,
-      ),
-);
+final vendorProductsProvider = FutureProvider.autoDispose
+    .family<Paged<VendorProduct>, VendorProductQuery>(
+      (ref, q) => ref
+          .watch(vendorServiceProvider)
+          .products(
+            page: q.page,
+            limit: q.limit,
+            search: q.search,
+            status:
+                q.status == VendorProductQuery.allStatuses ? null : q.status,
+            lowStockOnly: q.lowStockOnly,
+          ),
+    );
 
 /// Categories for the product form's picker. Also refreshed after the inline
 /// "+ Add New Category" creator runs.
-final vendorCategoriesProvider = FutureProvider.autoDispose<List<CategoryRecord>>((ref) => ref.watch(vendorServiceProvider).categories());
+final vendorCategoriesProvider =
+    FutureProvider.autoDispose<List<CategoryRecord>>(
+      (ref) => ref.watch(vendorServiceProvider).categories(),
+    );
+
+// ---------- Payouts ----------
+
+/// The vendor's own withdrawable balance (`GET /payouts/balance`).
+final vendorPayoutBalanceProvider =
+    FutureProvider.autoDispose<VendorPayoutBalance>(
+      (ref) => ref.watch(vendorServiceProvider).payoutBalance(),
+    );
+
+/// The vendor's own payout history (`GET /payouts/history`).
+final vendorPayoutHistoryProvider =
+    FutureProvider.autoDispose<List<PayoutRecord>>(
+      (ref) => ref.watch(vendorServiceProvider).payoutHistory(),
+    );
+
+/// Result of a payout request, surfaced by the payouts screen as a banner.
+class VendorPayoutRequestState {
+  const VendorPayoutRequestState({this.busy = false, this.message, this.error});
+
+  final bool busy;
+  final String? message;
+  final String? error;
+}
+
+final vendorPayoutRequestProvider =
+    NotifierProvider<VendorPayoutRequestController, VendorPayoutRequestState>(
+      VendorPayoutRequestController.new,
+    );
+
+class VendorPayoutRequestController extends Notifier<VendorPayoutRequestState> {
+  @override
+  VendorPayoutRequestState build() => const VendorPayoutRequestState();
+
+  /// Submits the request and, on success, refreshes the balance and history so
+  /// the screen reflects the platform's new state immediately.
+  Future<bool> submit({
+    required num amount,
+    required String accountName,
+    required String accountNumber,
+  }) async {
+    state = const VendorPayoutRequestState(busy: true);
+    try {
+      final message = await ref
+          .read(vendorServiceProvider)
+          .requestPayout(
+            amount: amount,
+            accountName: accountName,
+            accountNumber: accountNumber,
+          );
+      ref.invalidate(vendorPayoutBalanceProvider);
+      ref.invalidate(vendorPayoutHistoryProvider);
+      state = VendorPayoutRequestState(message: message);
+      return true;
+    } catch (e) {
+      state = VendorPayoutRequestState(error: friendlyError(e));
+      return false;
+    }
+  }
+
+  void reset() => state = const VendorPayoutRequestState();
+}
+
+// ---------- Wholesale purchases ----------
+
+/// Wholesale orders the vendor has placed (`GET /wholesale/orders/mine`).
+final vendorWholesalePurchasesProvider =
+    FutureProvider.autoDispose<List<WholesaleOrder>>(
+      (ref) => ref.watch(vendorServiceProvider).wholesalePurchases(),
+    );
+
+// ---------- Reviews ----------
+
+/// Reviews for one of the vendor's own products (`GET /reviews/product/:id`).
+/// Keyed by product id so each row of the reviews page loads only its own
+/// product's reviews.
+final vendorProductReviewsProvider = FutureProvider.autoDispose
+    .family<List<ReviewRecord>, String>(
+      (ref, productId) =>
+          ref.watch(vendorServiceProvider).productReviews(productId),
+    );
 
 // ---------- Shell search handoff ----------
 
@@ -138,7 +258,9 @@ class VendorSearchSeed extends Notifier<String> {
   void clear() => state = '';
 }
 
-final vendorSearchSeedProvider = NotifierProvider<VendorSearchSeed, String>(VendorSearchSeed.new);
+final vendorSearchSeedProvider = NotifierProvider<VendorSearchSeed, String>(
+  VendorSearchSeed.new,
+);
 
 // ---------- Mutations ----------
 
@@ -195,62 +317,70 @@ abstract class VendorWriteController extends Notifier<VendorMutationState> {
 class VendorStoreController extends VendorWriteController {
   /// Persists the store profile and refreshes everything derived from it.
   Future<bool> saveProfile(Map<String, dynamic> body) => write(
-        () => ref.read(vendorServiceProvider).updateStore(body),
-        success: 'Store profile updated',
-        extra: () {
-          ref.invalidate(myStoreProvider);
-          ref.invalidate(vendorStatsProvider);
-        },
-      );
+    () => ref.read(vendorServiceProvider).updateStore(body),
+    success: 'Store profile updated',
+    extra: () {
+      ref.invalidate(myStoreProvider);
+      ref.invalidate(vendorStatsProvider);
+    },
+  );
 
   /// Uploads verification documents and moves the store into review.
   Future<bool> submitDocuments(List<Map<String, String>> documents) => write(
-        () => ref.read(vendorServiceProvider).submitDocuments(documents),
-        success: 'Documents submitted for review',
-        extra: () => ref.invalidate(myStoreProvider),
-      );
+    () => ref.read(vendorServiceProvider).submitDocuments(documents),
+    success: 'Documents submitted for review',
+    extra: () => ref.invalidate(myStoreProvider),
+  );
 }
 
-final vendorStoreControllerProvider = NotifierProvider<VendorStoreController, VendorMutationState>(VendorStoreController.new);
+final vendorStoreControllerProvider =
+    NotifierProvider<VendorStoreController, VendorMutationState>(
+      VendorStoreController.new,
+    );
 
 /// Catalogue writes: create, update, availability toggle, remove, and the
 /// inline category creator.
 class VendorProductController extends VendorWriteController {
   Future<bool> createProduct(Map<String, dynamic> body) => write(
-        () => ref.read(vendorServiceProvider).createProduct(body),
-        success: 'Product added',
-        extra: () => ref.invalidate(vendorActivityProvider),
-      );
+    () => ref.read(vendorServiceProvider).createProduct(body),
+    success: 'Product added',
+    extra: () => ref.invalidate(vendorActivityProvider),
+  );
 
   Future<bool> updateProduct(String id, Map<String, dynamic> body) => write(
-        () => ref.read(vendorServiceProvider).updateProduct(id, body),
-        success: 'Product updated',
-        extra: () => ref.invalidate(vendorActivityProvider),
-      );
+    () => ref.read(vendorServiceProvider).updateProduct(id, body),
+    success: 'Product updated',
+    extra: () => ref.invalidate(vendorActivityProvider),
+  );
 
   /// Publishes or unpublishes a listing without opening the edit form.
   Future<bool> setAvailability(String id, String status) => write(
-        () => ref.read(vendorServiceProvider).setAvailability(id, status),
-        success: status == VendorProductStatus.active ? 'Product is live' : 'Product hidden',
-        extra: () {
-          // Availability moves money, so the dashboard counters move too.
-          ref.invalidate(vendorStatsProvider);
-          ref.invalidate(vendorActivityProvider);
-        },
-      );
+    () => ref.read(vendorServiceProvider).setAvailability(id, status),
+    success:
+        status == VendorProductStatus.active
+            ? 'Product is live'
+            : 'Product hidden',
+    extra: () {
+      // Availability moves money, so the dashboard counters move too.
+      ref.invalidate(vendorStatsProvider);
+      ref.invalidate(vendorActivityProvider);
+    },
+  );
 
   /// Soft-deletes a listing.
   Future<bool> removeProduct(String id) => write(
-        () => ref.read(vendorServiceProvider).removeProduct(id),
-        success: 'Product removed',
-      );
+    () => ref.read(vendorServiceProvider).removeProduct(id),
+    success: 'Product removed',
+  );
 
   /// Creates a category from inside the product form ("+ Add New Category") and
   /// returns it so the picker can select it straight away.
   Future<CategoryRecord?> createCategory(String name) async {
     state = const VendorMutationState(busy: true);
     try {
-      final created = await ref.read(vendorServiceProvider).createCategory(name);
+      final created = await ref
+          .read(vendorServiceProvider)
+          .createCategory(name);
       ref.invalidate(vendorCategoriesProvider);
       state = const VendorMutationState(success: 'Category created');
       return created;
@@ -261,4 +391,7 @@ class VendorProductController extends VendorWriteController {
   }
 }
 
-final vendorProductControllerProvider = NotifierProvider<VendorProductController, VendorMutationState>(VendorProductController.new);
+final vendorProductControllerProvider =
+    NotifierProvider<VendorProductController, VendorMutationState>(
+      VendorProductController.new,
+    );

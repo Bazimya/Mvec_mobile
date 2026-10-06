@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme.dart';
 import '../../core/utils.dart';
@@ -7,6 +9,13 @@ import '../../widgets/common.dart';
 
 /// Branded shell for the MVEC auth screens: gradient backdrop + card,
 /// mirroring the frontend `AuthLayout` styling.
+///
+/// Every auth screen is reachable from the public marketplace and must be
+/// escapable again without finishing the flow: somebody who taps "Log in" from
+/// the account sheet and then changes their mind needs one tap back to the
+/// storefront. The header therefore always carries a "Back to marketplace"
+/// action, matching the web `AuthLayout`, whose MVEC wordmark links to the
+/// storefront root.
 class AuthShell extends StatelessWidget {
   const AuthShell({
     super.key,
@@ -14,7 +23,8 @@ class AuthShell extends StatelessWidget {
     required this.subtitle,
     this.children = const [],
     this.footer,
-    this.topBar,
+    this.onBack,
+    this.onBackLabel,
     this.compact = false,
   });
 
@@ -22,10 +32,55 @@ class AuthShell extends StatelessWidget {
   final String subtitle;
   final List<Widget> children;
   final Widget? footer;
-  final Widget? topBar;
+
+  /// Steps back inside the auth flow (e.g. reset code -> email). When null only
+  /// the always-present "Back to marketplace" action is shown.
+  final VoidCallback? onBack;
+
+  /// Tooltip for the in-flow back button.
+  final String? onBackLabel;
 
   /// Renders a more compact card (used by the reset-password sub-screens).
   final bool compact;
+
+  static const _homeLabel = 'Back to marketplace';
+
+  void _goHome(BuildContext context) {
+    // `go` rather than `pop`: the auth routes are entered with `go`, so there
+    // is no local route entry to pop back to.
+    GoRouter.of(context).go('/home');
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        if (onBack != null)
+          IconButton(
+            tooltip: onBackLabel ?? 'Back',
+            visualDensity: VisualDensity.compact,
+            onPressed: onBack,
+            icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+          )
+        else
+          const SizedBox(width: 4),
+        const Spacer(),
+        TextButton.icon(
+          key: const ValueKey<String>('auth-back-to-marketplace'),
+          onPressed: () => _goHome(context),
+          icon: const Icon(Icons.storefront_outlined, size: 18),
+          label: Text(_homeLabel),
+          style: TextButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            textStyle: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        const _ThemeToggleButton(),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,10 +111,8 @@ class AuthShell extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (topBar != null) ...[
-                        topBar!,
-                        const SizedBox(height: 8),
-                      ],
+                      _buildHeader(context),
+                      const SizedBox(height: 8),
                       const _LogoLockup(),
                       const SizedBox(height: 22),
                       Text(
@@ -91,6 +144,26 @@ class AuthShell extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Light/dark switch in the auth header, mirroring the web `AuthLayout`
+/// theme toggle so every auth screen stays themeable.
+class _ThemeToggleButton extends ConsumerWidget {
+  const _ThemeToggleButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return IconButton(
+      tooltip: isDark ? 'Light mode' : 'Dark mode',
+      visualDensity: VisualDensity.compact,
+      onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
+      icon: Icon(
+        isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+        size: 19,
       ),
     );
   }

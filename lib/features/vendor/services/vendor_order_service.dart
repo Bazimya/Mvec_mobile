@@ -3,15 +3,12 @@ import '../models/vendor_order.dart';
 
 /// Contract for the vendor's order data source.
 ///
-/// The UI talks to this interface only, so [MockVendorOrderService] (rich local
-/// data, `--dart-define=DEMO_MODE=true`) and [ApiVendorOrderService] (live
-/// backend) are interchangeable. See `vendor_dependencies.dart` for the switch.
+/// The UI talks to this interface only, so [ApiVendorOrderService] (the live
+/// backend) can be swapped for a test double without touching a screen.
 ///
 /// Every method throws on failure so the Riverpod layer can surface a message;
 /// the screens render the error state with a retry.
 abstract class VendorOrderService {
-  /// True when the data is local demo data, so the UI can show a demo banner.
-  bool get isDemo;
 
   /// Orders assigned to the signed-in vendor, newest first, with per-status
   /// counts for the filter tabs.
@@ -35,6 +32,30 @@ abstract class VendorOrderService {
   Future<VendorOrder> cancel(String id, {String? reason});
 }
 
+/// The two guarded status transitions, checked before the request is sent.
+///
+/// Shipping without a tracking code and confirming delivery without the buyer's
+/// OTP are the steps that commit real money movement, so they are validated here
+/// for an immediate, specific message. The backend re-validates both regardless.
+/// Exposed as a free function so the rules are testable without a network.
+void validateStatusChange(
+  VendorOrderStatus status, {
+  String? trackingCode,
+  String? deliveryOtp,
+}) {
+  final hasTracking = trackingCode != null && trackingCode.trim().isNotEmpty;
+  final hasOtp = deliveryOtp != null && deliveryOtp.trim().isNotEmpty;
+
+  if (status == VendorOrderStatus.shipped && !hasTracking) {
+    throw ApiException('Add the courier tracking code before marking shipped.');
+  }
+  if (status == VendorOrderStatus.delivered && !hasOtp) {
+    throw ApiException(
+      "Confirm delivery with the buyer's one-time code to release escrow.",
+    );
+  }
+}
+
 /// Orders plus the counts that drive the filter tabs.
 class VendorOrderPage {
   const VendorOrderPage({required this.orders, this.counts = const {}});
@@ -52,9 +73,6 @@ class VendorOrderPage {
 class ApiVendorOrderService implements VendorOrderService {
   ApiVendorOrderService(this._api);
   final ApiClient _api;
-
-  @override
-  bool get isDemo => false;
 
   @override
   Future<VendorOrderPage> orders({VendorOrderStatus? status, String search = ''}) async {
@@ -80,6 +98,13 @@ class ApiVendorOrderService implements VendorOrderService {
     return VendorOrder.fromJson(singleJson(res, ['order']));
   }
 
+  /// Moves an order forward.
+  ///
+  /// The two guarded transitions are enforced here rather than left to a failed
+  /// request: shipping without a tracking code and confirming delivery without
+  /// the buyer's OTP are the two steps that commit real money movement, so the
+  /// vendor gets an immediate, specific message instead of a generic API error.
+  /// The backend re-validates both regardless.
   @override
   Future<VendorOrder> updateStatus(
     String id,
@@ -88,6 +113,8 @@ class ApiVendorOrderService implements VendorOrderService {
     String? courierName,
     String? deliveryOtp,
   }) async {
+    validateStatusChange(status, trackingCode: trackingCode, deliveryOtp: deliveryOtp);
+
     final res = await _api.patch('/stores/mine/orders/$id/status', body: {
       'status': status.slug,
       if (trackingCode != null && trackingCode.trim().isNotEmpty) 'trackingCode': trackingCode.trim(),

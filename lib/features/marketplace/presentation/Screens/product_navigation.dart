@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -11,7 +13,7 @@ import '../providers/commerce_provider.dart';
 import '../../data/models/product_model.dart' as marketplace;
 
 legacy.Product toLegacyProduct(marketplace.Product product) => legacy.Product(
-  id: product.id.toString(),
+  id: product.id,
   name: product.name,
   description: product.description,
   price: product.price,
@@ -58,24 +60,42 @@ void openWishlist(BuildContext context, CommerceProvider commerce) {
         onToggleWishlist: commerce.toggleWishlist,
         onOpenCart: () => openCart(context, commerce),
         onAddToCart: commerce.addToCart,
+        cartItemCount: () => commerce.cartItems.fold<int>(
+          0,
+          (count, item) => count + item.quantity,
+        ),
       ),
     ),
   );
 }
 
 void openCart(BuildContext context, CommerceProvider commerce) {
+  // The cart lives on the backend, so the page watches the provider rather than
+  // receiving a snapshot. This keeps quantity edits, removals and errors
+  // reflected without reopening the cart.
   Navigator.of(context).push<void>(
     MaterialPageRoute<void>(
-      builder: (_) => CartPage(
-        cartItems: commerce.cartItems,
-        onUpdateQuantity: commerce.updateCartQuantity,
-        onRemoveItem: commerce.removeCartItem,
-        onProceedToCheckout: () => openCheckout(context, commerce),
-        isWishlisted: commerce.isWishlisted,
-        onToggleWishlist: commerce.toggleWishlist,
-        onOpenWishlist: () => openWishlist(context, commerce),
-        onAddToCart: commerce.addToCart,
-        onOpenCart: () => openCart(context, commerce),
+      builder: (_) => ChangeNotifierProvider<CommerceProvider>.value(
+        value: commerce,
+        // Watching the provider here rebuilds `CartPage` in place whenever the
+        // server cart changes. The widget type and key are unchanged, so the
+        // page's own State (and the shopper's scroll position) survives.
+        child: Consumer<CommerceProvider>(
+          builder: (context, commerce, _) => CartPage(
+            cartItems: commerce.cartItems,
+            isSyncing: commerce.isCartSyncing,
+            errorMessage: commerce.cartError,
+            onRetry: commerce.loadCart,
+            onUpdateQuantity: commerce.setCartQuantity,
+            onRemoveItem: commerce.removeCartItem,
+            onProceedToCheckout: () => openCheckout(context, commerce),
+            isWishlisted: commerce.isWishlisted,
+            onToggleWishlist: commerce.toggleWishlist,
+            onOpenWishlist: () => openWishlist(context, commerce),
+            onAddToCart: commerce.addToCart,
+            onOpenCart: () => openCart(context, commerce),
+          ),
+        ),
       ),
     ),
   );
@@ -101,7 +121,9 @@ void openCheckout(BuildContext context, CommerceProvider commerce) {
         tax: tax,
         total: subtotal + shippingFee + serviceFee + tax,
         onOrderPlaced: (order) {
-          commerce.clearCart();
+          // Checkout already created the order from the server-side cart, so the
+          // cart is emptied on the backend rather than only in this list.
+          unawaited(commerce.clearCart());
           navigator.pop();
           navigator.push<void>(
             MaterialPageRoute<void>(

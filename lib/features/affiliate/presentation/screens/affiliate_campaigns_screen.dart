@@ -16,10 +16,12 @@ class AffiliateCampaignsScreen extends ConsumerStatefulWidget {
   const AffiliateCampaignsScreen({super.key});
 
   @override
-  ConsumerState<AffiliateCampaignsScreen> createState() => _AffiliateCampaignsScreenState();
+  ConsumerState<AffiliateCampaignsScreen> createState() =>
+      _AffiliateCampaignsScreenState();
 }
 
-class _AffiliateCampaignsScreenState extends ConsumerState<AffiliateCampaignsScreen> {
+class _AffiliateCampaignsScreenState
+    extends ConsumerState<AffiliateCampaignsScreen> {
   String? _joiningId;
 
   Future<void> _join(AffiliateCampaign c) async {
@@ -45,13 +47,24 @@ class _AffiliateCampaignsScreenState extends ConsumerState<AffiliateCampaignsScr
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const PageHead(eyebrow: 'Promotion', title: 'Campaigns', subtitle: 'Join active campaigns to promote curated products at boosted rates.'),
+        const PageHead(
+          eyebrow: 'Promotion',
+          title: 'Campaigns',
+          subtitle:
+              'Join active campaigns to promote curated products at boosted rates.',
+        ),
         async.when(
           loading: () => const LoadingState(),
-          error: (e, _) => ErrorState(message: friendlyError(e), onRetry: () => ref.invalidate(affiliateCampaignsProvider)),
+          error:
+              (e, _) => ErrorState(
+                message: friendlyError(e),
+                onRetry: () => ref.invalidate(affiliateCampaignsProvider),
+              ),
           data: (campaigns) {
             if (campaigns.isEmpty) {
-              return const DataCard(child: EmptyState(message: 'No open campaigns right now'));
+              return const DataCard(
+                child: EmptyState(message: 'No open campaigns right now'),
+              );
             }
             return Column(
               children: [
@@ -83,11 +96,33 @@ class _AffiliateCampaignsScreenState extends ConsumerState<AffiliateCampaignsScr
                 Container(
                   width: 46,
                   height: 46,
-                  decoration: BoxDecoration(color: MvColors.metricIconBg, borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(
+                    color: MvColors.metricIconBg,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   child: Center(
-                    child: c.banner == null
-                        ? const MvIcon('tag', size: 20, color: MvColors.primaryDeep)
-                        : ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.network(c.banner!, width: 46, height: 46, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const MvIcon('tag', size: 20, color: MvColors.primaryDeep))),
+                    child:
+                        c.banner == null
+                            ? const MvIcon(
+                              'tag',
+                              size: 20,
+                              color: MvColors.primaryDeep,
+                            )
+                            : ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                c.banner!,
+                                width: 46,
+                                height: 46,
+                                fit: BoxFit.cover,
+                                errorBuilder:
+                                    (_, __, ___) => const MvIcon(
+                                      'tag',
+                                      size: 20,
+                                      color: MvColors.primaryDeep,
+                                    ),
+                              ),
+                            ),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -98,17 +133,39 @@ class _AffiliateCampaignsScreenState extends ConsumerState<AffiliateCampaignsScr
                       Row(
                         children: [
                           Expanded(
-                            child: Text(c.name ?? 'Campaign', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                            child: Text(
+                              c.name ?? 'Campaign',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                           ),
                           if (c.isLive)
-                            StatusChip(c.status ?? 'ACTIVE', overrideColor: MvColors.successText)
+                            StatusChip(
+                              c.status ?? 'ACTIVE',
+                              overrideColor: MvColors.successText,
+                            )
                           else
-                            StatusChip('ENDED', overrideColor: MvColors.errorText),
+                            StatusChip(
+                              'ENDED',
+                              overrideColor: MvColors.errorText,
+                            ),
                         ],
                       ),
-                      if (c.description != null && c.description!.isNotEmpty) ...[
+                      if (c.description != null &&
+                          c.description!.isNotEmpty) ...[
                         const SizedBox(height: 4),
-                        Text(c.description!, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor, height: 1.45)),
+                        Text(
+                          c.description!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).hintColor,
+                            height: 1.45,
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -120,7 +177,10 @@ class _AffiliateCampaignsScreenState extends ConsumerState<AffiliateCampaignsScr
               spacing: 12,
               runSpacing: 10,
               children: [
-                InlineStat(label: 'Commission', value: '${c.commissionRate ?? 8}%'),
+                InlineStat(
+                  label: 'Commission',
+                  value: '${c.commissionRate ?? 8}%',
+                ),
                 InlineStat(label: 'Products', value: '${c.productCount}'),
                 InlineStat(label: 'Conversions', value: '${c.conversions}'),
                 InlineStat(label: 'Earnings', value: money(c.earnings)),
@@ -134,12 +194,22 @@ class _AffiliateCampaignsScreenState extends ConsumerState<AffiliateCampaignsScr
                     c.joined
                         ? 'Active in this campaign'
                         : '${c.daysLeft > 0 ? '${c.daysLeft} days left — ' : ''}${_period(c)}',
-                    style: TextStyle(fontSize: 11.5, color: isDark ? MvColors.darkMuted : MvColors.muted),
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: isDark ? MvColors.darkMuted : MvColors.muted,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 if (c.joined)
-                  OutlineMvButton(label: 'Promote', icon: 'plus', onPressed: () => context.go('/affiliate/products'))
+                  OutlineMvButton(
+                    label: 'Promote',
+                    icon: 'plus',
+                    onPressed:
+                        () => context.go(
+                          '/affiliate/products?campaignId=${Uri.encodeQueryComponent(c.id ?? '')}',
+                        ),
+                  )
                 else
                   GradientButton(
                     label: joining ? 'Joining…' : 'Join campaign',

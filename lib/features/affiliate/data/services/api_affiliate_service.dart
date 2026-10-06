@@ -15,21 +15,25 @@ class ApiAffiliateService implements AffiliateService {
 
   final ApiClient _api;
 
-  @override
-  bool get isDemo => false;
-
   // ---------- Profile & verification ----------
 
   @override
   Future<AffiliateProfile> fetchProfile() async {
     final res = await _api.get('/affiliates/profile');
-    return AffiliateProfile.fromJson(singleJson(res, ['affiliate', 'profile', 'user']));
+    return AffiliateProfile.fromJson(
+      singleJson(res, ['affiliate', 'profile', 'user']),
+    );
   }
 
   @override
   Future<AffiliateProfile> updateProfile(AffiliateProfile draft) async {
-    final res = await _api.patch('/affiliates/profile', body: draft.toUpdateJson());
-    return AffiliateProfile.fromJson(singleJson(res, ['affiliate', 'profile', 'user']));
+    final res = await _api.patch(
+      '/affiliates/profile',
+      body: draft.toUpdateJson(),
+    );
+    return AffiliateProfile.fromJson(
+      singleJson(res, ['affiliate', 'profile', 'user']),
+    );
   }
 
   @override
@@ -38,12 +42,25 @@ class ApiAffiliateService implements AffiliateService {
     return AffiliateVerification.fromJson(singleJson(res, ['verification']));
   }
 
+  @override
+  Future<AffiliateVerification> submitVerification(
+    List<Map<String, String>> documents,
+  ) async {
+    final res = await _api.post(
+      '/affiliates/verification',
+      body: {'documents': documents},
+    );
+    return AffiliateVerification.fromJson(singleJson(res, ['verification']));
+  }
+
   // ---------- Dashboard ----------
 
   @override
   Future<AffiliateOverview> fetchOverview() async {
     final res = await _api.get('/affiliates/overview');
-    return AffiliateOverview.fromJson(res is Map ? Map<String, dynamic>.from(res) : const {});
+    return AffiliateOverview.fromJson(
+      res is Map ? Map<String, dynamic>.from(res) : const {},
+    );
   }
 
   // ---------- Referral links ----------
@@ -55,18 +72,28 @@ class ApiAffiliateService implements AffiliateService {
   }
 
   @override
-  Future<AffiliateLink> generateLink({String? productId, String? campaignId, String? label}) async {
-    final res = await _api.post('/affiliates/links', body: {
-      if (productId != null) 'productId': productId,
-      if (campaignId != null) 'campaignId': campaignId,
-      if (label != null && label.isNotEmpty) 'label': label,
-    });
+  Future<AffiliateLink> generateLink({
+    String? productId,
+    String? campaignId,
+    String? label,
+  }) async {
+    final res = await _api.post(
+      '/affiliates/links',
+      body: {
+        if (productId != null) 'productId': productId,
+        if (campaignId != null) 'campaignId': campaignId,
+        if (label != null && label.isNotEmpty) 'label': label,
+      },
+    );
     return AffiliateLink.fromJson(singleJson(res, ['link', 'affiliateLink']));
   }
 
   @override
   Future<AffiliateLink> setLinkActive(String id, bool active) async {
-    final res = await _api.patch('/affiliates/links/$id', body: {'isActive': active});
+    final res = await _api.patch(
+      '/affiliates/links/$id',
+      body: {'isActive': active},
+    );
     return AffiliateLink.fromJson(singleJson(res, ['link', 'affiliateLink']));
   }
 
@@ -78,20 +105,29 @@ class ApiAffiliateService implements AffiliateService {
   // ---------- Sharing ----------
 
   @override
-  Future<List<PromotableProduct>> fetchPromotableProducts({String? search, String? campaignId}) async {
-    final res = await _api.get('/products', query: {
-      'page': '1',
-      'limit': '60',
-      'status': 'ACTIVE',
-      if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
-      if (campaignId != null) 'campaignId': campaignId,
-    });
+  Future<List<PromotableProduct>> fetchPromotableProducts({
+    String? search,
+    String? campaignId,
+  }) async {
+    final res = await _api.get(
+      '/products',
+      query: {
+        'page': '1',
+        'limit': '60',
+        'status': 'ACTIVE',
+        if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+        if (campaignId != null) 'campaignId': campaignId,
+      },
+    );
     return listJsonOf(res, PromotableProduct.fromJson);
   }
 
   @override
   Future<List<AffiliateCampaign>> fetchCampaigns() async {
-    final res = await _api.get('/affiliates/campaigns', query: {'status': 'ACTIVE'});
+    final res = await _api.get(
+      '/affiliates/campaigns',
+      query: {'status': 'ACTIVE'},
+    );
     return listJsonOf(res, AffiliateCampaign.fromJson);
   }
 
@@ -106,7 +142,9 @@ class ApiAffiliateService implements AffiliateService {
   @override
   Future<AffiliateStats> fetchStats({String range = '30d'}) async {
     final res = await _api.get('/affiliates/stats', query: {'range': range});
-    return AffiliateStats.fromJson(res is Map ? Map<String, dynamic>.from(res) : const {});
+    return AffiliateStats.fromJson(
+      res is Map ? Map<String, dynamic>.from(res) : const {},
+    );
   }
 
   // ---------- Earnings ----------
@@ -119,10 +157,10 @@ class ApiAffiliateService implements AffiliateService {
 
   @override
   Future<List<AffiliateCommission>> fetchCommissions({String? status}) async {
-    final res = await _api.get('/affiliates/commissions', query: {
-      'limit': '200',
-      if (status != null) 'status': status,
-    });
+    final res = await _api.get(
+      '/affiliates/commissions',
+      query: {'limit': '200', if (status != null) 'status': status},
+    );
     return listJsonOf(res, AffiliateCommission.fromJson);
   }
 
@@ -142,15 +180,18 @@ class ApiAffiliateService implements AffiliateService {
     required String phoneNumber,
     String? bankName,
   }) async {
-    final res = await _api.post('/affiliates/payouts/request', body: {
-      'amount': amount,
-      'paymentMethod': paymentMethod,
-      'accountDetails': {
-        'phoneNumber': phoneNumber,
-        'accountName': accountName,
-        if (bankName != null && bankName.isNotEmpty) 'bankName': bankName,
+    final res = await _api.post(
+      '/affiliates/payouts/request',
+      body: {
+        'amount': amount,
+        'paymentMethod': paymentMethod,
+        'accountDetails': {
+          'phoneNumber': phoneNumber,
+          'accountName': accountName,
+          if (bankName != null && bankName.isNotEmpty) 'bankName': bankName,
+        },
       },
-    });
+    );
     return AffiliatePayout.fromJson(singleJson(res, ['payout']));
   }
 
@@ -158,7 +199,10 @@ class ApiAffiliateService implements AffiliateService {
 
   @override
   Future<List<AffiliateNotification>> fetchNotifications() async {
-    final res = await _api.get('/affiliates/notifications', query: {'limit': '100'});
+    final res = await _api.get(
+      '/affiliates/notifications',
+      query: {'limit': '100'},
+    );
     return listJsonOf(res, AffiliateNotification.fromJson);
   }
 
@@ -181,7 +225,10 @@ class ApiAffiliateService implements AffiliateService {
 
   @override
   Future<AffiliateSettings> updateSettings(AffiliateSettings settings) async {
-    final res = await _api.patch('/affiliates/settings', body: settings.toJson());
+    final res = await _api.patch(
+      '/affiliates/settings',
+      body: settings.toJson(),
+    );
     return AffiliateSettings.fromJson(singleJson(res, ['settings']));
   }
 }

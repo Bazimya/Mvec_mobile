@@ -4,13 +4,9 @@ import '../models/affiliate_profile.dart';
 
 /// Data source contract for the whole affiliate module.
 ///
-/// Two implementations exist — [ApiAffiliateService] (the real MVEC backend)
-/// and [MockAffiliateService] (local demo data) — and the presentation layer
-/// only ever sees this interface, so wiring the module to the live API is a
-/// one-line provider change with no widget edits.
+/// [ApiAffiliateService] is the production implementation; tests substitute
+/// their own double. The presentation layer only ever sees this interface.
 abstract class AffiliateService {
-  /// True when responses come from bundled demo data rather than the backend.
-  bool get isDemo;
 
   // ---------- Profile & verification ----------
   Future<AffiliateProfile> fetchProfile();
@@ -21,6 +17,11 @@ abstract class AffiliateService {
   /// Full verification record (submitted documents, reviewer notes).
   Future<AffiliateVerification> fetchVerification();
 
+  /// Submits already-uploaded document URLs for review.
+  Future<AffiliateVerification> submitVerification(
+    List<Map<String, String>> documents,
+  );
+
   // ---------- Dashboard ----------
   /// One aggregated call for the overview screen.
   Future<AffiliateOverview> fetchOverview();
@@ -29,7 +30,11 @@ abstract class AffiliateService {
   Future<List<AffiliateLink>> fetchLinks();
 
   /// Creates a link for a product, a campaign, or a bare general link.
-  Future<AffiliateLink> generateLink({String? productId, String? campaignId, String? label});
+  Future<AffiliateLink> generateLink({
+    String? productId,
+    String? campaignId,
+    String? label,
+  });
 
   /// Enables or disables an existing link without losing its statistics.
   Future<AffiliateLink> setLinkActive(String id, bool active);
@@ -37,7 +42,10 @@ abstract class AffiliateService {
   Future<void> deleteLink(String id);
 
   // ---------- Sharing ----------
-  Future<List<PromotableProduct>> fetchPromotableProducts({String? search, String? campaignId});
+  Future<List<PromotableProduct>> fetchPromotableProducts({
+    String? search,
+    String? campaignId,
+  });
 
   Future<List<AffiliateCampaign>> fetchCampaigns();
 
@@ -57,7 +65,13 @@ abstract class AffiliateService {
   Future<List<AffiliatePayout>> fetchPayouts();
 
   /// Requests a withdrawal. The backend enforces the 10,000 RWF minimum.
-  Future<AffiliatePayout> requestPayout({required num amount, required String paymentMethod, required String accountName, required String phoneNumber, String? bankName});
+  Future<AffiliatePayout> requestPayout({
+    required num amount,
+    required String paymentMethod,
+    required String accountName,
+    required String phoneNumber,
+    String? bankName,
+  });
 
   // ---------- Notifications ----------
   Future<List<AffiliateNotification>> fetchNotifications();

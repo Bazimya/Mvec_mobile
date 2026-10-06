@@ -96,14 +96,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       title: 'Create your account',
       subtitle:
           'Join MVEC with your phone number, then choose how you want to participate on the marketplace.',
-      topBar: Align(
-        alignment: Alignment.centerLeft,
-        child: IconButton(
-          tooltip: 'Back',
-          onPressed: loading ? null : () => context.go('/login'),
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18),
-        ),
-      ),
+      onBack: loading ? null : () => context.go('/login'),
+      onBackLabel: 'Back to login',
       footer: authLinkFooter(
         context,
         'Already have an account?',

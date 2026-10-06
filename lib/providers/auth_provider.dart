@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/api_client.dart';
-import '../core/api_config.dart';
 import '../core/utils.dart';
 import '../models/user.dart';
 
@@ -68,16 +67,6 @@ class AuthController extends Notifier<AuthState> {
 
   final _api = ApiClient.instance;
 
-  /// Locally-built super-admin session used when [kDemoMode] is on, so the app
-  /// can be demonstrated without a backend.
-  static final _demoUser = UserRecord(
-    id: 'demo-super-admin',
-    fullname: 'Demo Super Admin',
-    email: kAdminEmail,
-    role: 'super_admin',
-    status: 'active',
-  );
-
   Future<void> _restore() async {
     String? token;
     try {
@@ -90,14 +79,6 @@ class AuthController extends Notifier<AuthState> {
     }
     if (token == null) {
       state = const AuthState();
-      return;
-    }
-    if (kDemoMode) {
-      // The demo token is not a real JWT — skip the `/auth/me` round-trip.
-      state = AuthState(
-        session: AuthSession(token: token, user: _demoUser),
-        restoring: false,
-      );
       return;
     }
     try {
@@ -113,56 +94,15 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  /// Re-reads the signed-in account from `/auth/me`.
+  ///
+  /// Needed after an action that changes the account itself — opening a seller
+  /// store, for example — so routing guards see the new role instead of the
+  /// one cached at login.
+  Future<void> refreshSession() => _restore();
+
   /// Logs in with an email or a phone number plus a password.
   Future<bool> login(String emailOrPhone, String password) async {
-    if (kDemoMode) {
-      // Demo identities route to the admin, vendor or buyer experience locally.
-      final identity = emailOrPhone.trim();
-      if (identity.isEmpty || password.isEmpty) {
-        state = state.copyWith(
-          loading: false,
-          error: 'Enter an email and a password.',
-        );
-        return false;
-      }
-      final normalizedIdentity = identity.toLowerCase();
-      final wantsAdmin = normalizedIdentity.contains('admin');
-      final wantsAffiliate = normalizedIdentity.contains('affiliate');
-      final wantsVendor = normalizedIdentity.contains('vendor');
-      state = AuthState(
-        session: AuthSession(
-          token: 'demo-token',
-          user:
-              wantsAdmin
-                  ? _demoUser
-                  : wantsAffiliate
-                  ? UserRecord(
-                    id: 'demo-affiliate',
-                    fullname: 'Demo Affiliate',
-                    email: identity,
-                    role: 'affiliate',
-                    status: 'active',
-                  )
-                  : wantsVendor
-                  ? UserRecord(
-                    id: 'demo-vendor',
-                    fullname: 'Demo Vendor',
-                    email: identity,
-                    role: 'vendor',
-                    status: 'active',
-                    companyName: 'Umucyo Harvest Market',
-                  )
-                  : UserRecord(
-                    id: 'demo-buyer',
-                    fullname: 'Demo Buyer',
-                    email: identity,
-                    role: 'buyer',
-                    status: 'active',
-                  ),
-        ),
-      );
-      return true;
-    }
     state = state.copyWith(loading: true, clearError: true);
     try {
       final isEmail = emailOrPhone.contains('@');
@@ -194,28 +134,6 @@ class AuthController extends Notifier<AuthState> {
     String? companyName,
     required String password,
   }) async {
-    if (kDemoMode) {
-      // Demo mode: create the session locally, no backend call.
-      state = AuthState(
-        session: AuthSession(
-          token: 'demo-token',
-          user: UserRecord(
-            id: 'demo-$role',
-            fullname: fullName,
-            email: email?.trim().isNotEmpty == true ? email!.trim() : null,
-            phone: telephone.trim(),
-            role: role,
-            gender: gender,
-            companyName:
-                companyName?.trim().isNotEmpty == true
-                    ? companyName!.trim()
-                    : null,
-            status: 'active',
-          ),
-        ),
-      );
-      return true;
-    }
     state = state.copyWith(loading: true, clearError: true);
     try {
       final res = await _api.post(
@@ -345,10 +263,14 @@ String roleHome(UserRecord user) {
   switch (user.userType) {
     case 'super_admin':
       return '/admin';
+    case 'supplier':
+      return '/supplier';
     case 'affiliate':
       return '/affiliate';
     case 'vendor':
       return '/vendor';
+    case 'delivery':
+      return '/delivery';
     default:
       return '/home';
   }

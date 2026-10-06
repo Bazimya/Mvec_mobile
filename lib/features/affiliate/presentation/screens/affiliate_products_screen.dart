@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/theme.dart';
 import '../../../../core/utils.dart';
@@ -17,10 +19,12 @@ class AffiliateProductsScreen extends ConsumerStatefulWidget {
   const AffiliateProductsScreen({super.key});
 
   @override
-  ConsumerState<AffiliateProductsScreen> createState() => _AffiliateProductsScreenState();
+  ConsumerState<AffiliateProductsScreen> createState() =>
+      _AffiliateProductsScreenState();
 }
 
-class _AffiliateProductsScreenState extends ConsumerState<AffiliateProductsScreen> {
+class _AffiliateProductsScreenState
+    extends ConsumerState<AffiliateProductsScreen> {
   final _search = TextEditingController();
   String _q = '';
   String? _generatingId;
@@ -28,7 +32,9 @@ class _AffiliateProductsScreenState extends ConsumerState<AffiliateProductsScree
   @override
   void initState() {
     super.initState();
-    _search.addListener(() => setState(() => _q = _search.text.trim().toLowerCase()));
+    _search.addListener(
+      () => setState(() => _q = _search.text.trim().toLowerCase()),
+    );
   }
 
   @override
@@ -37,11 +43,14 @@ class _AffiliateProductsScreenState extends ConsumerState<AffiliateProductsScree
     super.dispose();
   }
 
-  Future<void> _generate(PromotableProduct p) async {
+  Future<void> _generate(PromotableProduct p, String? campaignId) async {
     setState(() => _generatingId = p.id);
     try {
-      final link = await ref.read(affiliateServiceProvider).generateLink(
+      final link = await ref
+          .read(affiliateServiceProvider)
+          .generateLink(
             productId: p.id,
+            campaignId: campaignId,
             label: 'Product: ${p.name}',
           );
       if (!mounted) return;
@@ -61,9 +70,18 @@ class _AffiliateProductsScreenState extends ConsumerState<AffiliateProductsScree
       context,
       title: p.name ?? 'Referral link created',
       children: [
-        VerifiedBox('Your referral link', 'Anyone who opens this link and registers through it earns you commission.'),
+        VerifiedBox(
+          'Your referral link',
+          'Anyone who opens this link and registers through it earns you commission.',
+        ),
         const SizedBox(height: 16),
         ReferralCodeCard(profile: AffiliateProfile(referralCode: link.code)),
+        const SizedBox(height: 8),
+        OutlineMvButton(
+          label: 'Share link',
+          icon: 'share',
+          onPressed: () => Share.share(link.shareUrl),
+        ),
         const SizedBox(height: 8),
         Text(
           'The link tracks clicks, registrations and purchases automatically.',
@@ -75,16 +93,31 @@ class _AffiliateProductsScreenState extends ConsumerState<AffiliateProductsScree
 
   @override
   Widget build(BuildContext context) {
-    final async = ref.watch(affiliateProductsProvider);
+    final campaignId =
+        GoRouterState.of(context).uri.queryParameters['campaignId'];
+    final async = ref.watch(affiliateProductsProvider(campaignId));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const PageHead(eyebrow: 'Promotion', title: 'Promote Products', subtitle: 'Pick a product and get a trackable referral link to share.'),
+        const PageHead(
+          eyebrow: 'Promotion',
+          title: 'Promote Products',
+          subtitle:
+              'Pick a product and get a trackable referral link to share.',
+        ),
         async.when(
           loading: () => const LoadingState(),
-          error: (e, _) => ErrorState(message: friendlyError(e), onRetry: () => ref.invalidate(affiliateProductsProvider)),
+          error:
+              (e, _) => ErrorState(
+                message: friendlyError(e),
+                onRetry:
+                    () => ref.invalidate(affiliateProductsProvider(campaignId)),
+              ),
           data: (products) {
-            final list = products.where((p) => (p.name ?? '').toLowerCase().contains(_q)).toList();
+            final list =
+                products
+                    .where((p) => (p.name ?? '').toLowerCase().contains(_q))
+                    .toList();
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -97,13 +130,14 @@ class _AffiliateProductsScreenState extends ConsumerState<AffiliateProductsScree
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: list.length,
-                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 280,
-                      mainAxisSpacing: 14,
-                      crossAxisSpacing: 14,
-                      childAspectRatio: 0.82,
-                    ),
-                    itemBuilder: (c, i) => _productCard(list[i]),
+                    gridDelegate:
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 280,
+                          mainAxisSpacing: 14,
+                          crossAxisSpacing: 14,
+                          childAspectRatio: 0.82,
+                        ),
+                    itemBuilder: (c, i) => _productCard(list[i], campaignId),
                   ),
               ],
             );
@@ -128,7 +162,7 @@ class _AffiliateProductsScreenState extends ConsumerState<AffiliateProductsScree
     );
   }
 
-  Widget _productCard(PromotableProduct p) {
+  Widget _productCard(PromotableProduct p, String? campaignId) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final generating = _generatingId == p.id;
     return Card(
@@ -140,14 +174,39 @@ class _AffiliateProductsScreenState extends ConsumerState<AffiliateProductsScree
             width: double.infinity,
             decoration: BoxDecoration(
               color: isDark ? MvColors.darkSurface2 : MvColors.surface2,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(10),
+              ),
             ),
-            child: p.image == null
-                ? Center(child: MvIcon('box', size: 28, color: isDark ? MvColors.darkMuted : MvColors.muted))
-                : ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                    child: Image.network(p.image!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Center(child: MvIcon('box', size: 28, color: isDark ? MvColors.darkMuted : MvColors.muted))),
-                  ),
+            child:
+                p.image == null
+                    ? Center(
+                      child: MvIcon(
+                        'box',
+                        size: 28,
+                        color: isDark ? MvColors.darkMuted : MvColors.muted,
+                      ),
+                    )
+                    : ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(10),
+                      ),
+                      child: Image.network(
+                        p.image!,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (_, __, ___) => Center(
+                              child: MvIcon(
+                                'box',
+                                size: 28,
+                                color:
+                                    isDark
+                                        ? MvColors.darkMuted
+                                        : MvColors.muted,
+                              ),
+                            ),
+                      ),
+                    ),
           ),
           Expanded(
             child: Padding(
@@ -158,29 +217,68 @@ class _AffiliateProductsScreenState extends ConsumerState<AffiliateProductsScree
                   Row(
                     children: [
                       Expanded(
-                        child: Text(p.name ?? 'Product', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                        child: Text(
+                          p.name ?? 'Product',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                       ),
                       if (p.rating != null && p.rating! > 0)
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const MvIcon('check', size: 12, color: MvColors.successText),
+                            const MvIcon(
+                              'check',
+                              size: 12,
+                              color: MvColors.successText,
+                            ),
                             const SizedBox(width: 2),
-                            Text(p.rating!.toStringAsFixed(1), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: MvColors.successText)),
+                            Text(
+                              p.rating!.toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: MvColors.successText,
+                              ),
+                            ),
                           ],
                         ),
                     ],
                   ),
                   const SizedBox(height: 3),
-                  Text(p.category ?? p.vendor ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor)),
+                  Text(
+                    p.category ?? p.vendor ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).hintColor,
+                    ),
+                  ),
                   const Spacer(),
-                  Text(money(p.price), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, fontFamily: 'Manrope', color: MvColors.primaryDeep)),
+                  Text(
+                    money(p.price),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      fontFamily: 'Manrope',
+                      color: MvColors.primaryDeep,
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   if (p.hasLink)
                     Row(
                       children: [
                         Expanded(
-                          child: OutlineMvButton(label: 'Copy link', icon: 'copy', onPressed: () => _copyProduct(p)),
+                          child: OutlineMvButton(
+                            label: 'Copy link',
+                            icon: 'copy',
+                            onPressed: () => _copyProduct(p),
+                          ),
                         ),
                       ],
                     )
@@ -192,7 +290,10 @@ class _AffiliateProductsScreenState extends ConsumerState<AffiliateProductsScree
                             label: generating ? 'Creating…' : 'Generate link',
                             icon: 'plus',
                             expanded: true,
-                            onPressed: generating ? null : () => _generate(p),
+                            onPressed:
+                                generating
+                                    ? null
+                                    : () => _generate(p, campaignId),
                           ),
                         ),
                       ],
@@ -209,7 +310,7 @@ class _AffiliateProductsScreenState extends ConsumerState<AffiliateProductsScree
   Future<void> _copyProduct(PromotableProduct p) async {
     final code = p.referralCode;
     if (code == null || code.isEmpty) {
-      await _generate(p);
+      await _generate(p, p.campaignId);
       return;
     }
     copyToClipboard(context, affiliateLinkUrl(code));

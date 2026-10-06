@@ -123,7 +123,7 @@ class _StatusFooterState extends ConsumerState<_StatusFooter> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         DropdownButtonFormField<String>(
-          initialValue: _status,
+          value: _status,
           isExpanded: true,
           style: const TextStyle(fontSize: 13),
           decoration: const InputDecoration(labelText: 'Set status'),

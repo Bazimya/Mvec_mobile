@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
-import '../models/cart_item.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../core/api_client.dart';
+import '../features/marketplace/data/services/api_address_service.dart';
+import '../features/marketplace/data/services/api_order_service.dart';
 import '../models/address.dart';
+import '../models/cart_item.dart';
 import '../models/order.dart';
 
 class CheckoutPage extends StatefulWidget {
@@ -12,6 +17,10 @@ class CheckoutPage extends StatefulWidget {
   final double total;
   final ValueChanged<Order> onOrderPlaced;
 
+  /// Overridable so widget tests can drive checkout without a network.
+  final ApiOrderService? orderService;
+  final ApiAddressService? addressService;
+
   const CheckoutPage({
     super.key,
     required this.cartItems,
@@ -21,6 +30,8 @@ class CheckoutPage extends StatefulWidget {
     required this.tax,
     required this.total,
     required this.onOrderPlaced,
+    this.orderService,
+    this.addressService,
   });
 
   @override
@@ -28,9 +39,11 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
-  final List<Address> _addresses = [];
+  /// Saved addresses from `GET /auth/addresses`. Empty means the shopper has
+  /// none saved - it never falls back to seeded addresses.
+  final List<SavedAddress> _addresses = [];
 
-  Address? _selectedAddress;
+  SavedAddress? _selectedAddress;
   String _selectedPaymentMethod = 'Mobile Money';
 
   final List<String> _paymentMethods = [
@@ -39,6 +52,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
   ];
 
   bool _isSubmitting = false;
+  bool _isLoadingAddresses = true;
+  String? _addressError;
+  String? _checkoutError;
+
+  late final ApiOrderService _orders = widget.orderService ?? ApiOrderService();
+  late final ApiAddressService _addressService =
+      widget.addressService ?? ApiAddressService();
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
@@ -49,6 +69,38 @@ class _CheckoutPageState extends State<CheckoutPage> {
   @override
   void initState() {
     super.initState();
+    _loadAddresses();
+  }
+
+  /// Loads the shopper's saved addresses and preselects their default, so the
+  /// common case is a single tap to place the order.
+  Future<void> _loadAddresses() async {
+    setState(() {
+      _isLoadingAddresses = true;
+      _addressError = null;
+    });
+    try {
+      final addresses = await _addressService.addresses();
+      if (!mounted) return;
+      setState(() {
+        _addresses
+          ..clear()
+          ..addAll(addresses);
+        _selectedAddress ??= addresses.isEmpty
+            ? null
+            : addresses.firstWhere(
+                (address) => address.isDefault,
+                orElse: () => addresses.first,
+              );
+        _isLoadingAddresses = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _addressError = e.message;
+        _isLoadingAddresses = false;
+      });
+    }
   }
 
   @override
@@ -105,6 +157,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
             _buildOrderSummary(),
             const SizedBox(height: 30),
 
+            // ========== Checkout Error ==========
+            if (_checkoutError != null) ...[
+              _buildAddressNotice(
+                _checkoutError!,
+                actionLabel: 'Try again',
+                onAction: _submitOrder,
+              ),
+              const SizedBox(height: 16),
+            ],
+
             // ========== Place Order Button ==========
             SizedBox(
               width: double.infinity,
@@ -159,20 +221,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget _buildAddressSection() {
     return Column(
       children: [
-        if (_addresses.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: const Text(
-              'No delivery address added yet. Add one to continue.',
-              textAlign: TextAlign.center,
-            ),
-          ),
+        if (_isLoadingAddresses)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (_addressError != null && _addresses.isEmpty)
+          _buildAddressNotice(
+            'Could not load your addresses: $_addressError',
+            actionLabel: 'Retry',
+            onAction: _loadAddresses,
+          )
+        else if (_addresses.isEmpty)
+          _buildAddressNotice('No delivery address saved yet. Add one to continue.'),
         ..._addresses.map((address) {
           final isSelected = _selectedAddress?.id == address.id;
           return GestureDetector(
@@ -223,7 +284,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          '${address.addressLine}, ${address.city}',
+                          address.summary,
                           style: TextStyle(color: Colors.grey[700], fontSize: 13),
                         ),
                       ],
@@ -251,6 +312,32 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
+  /// Inline notice used for the loading-failed and no-address states.
+  Widget _buildAddressNotice(
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        children: [
+          Text(message, textAlign: TextAlign.center),
+          if (actionLabel != null) ...[
+            const SizedBox(height: 8),
+            TextButton(onPressed: onAction, child: Text(actionLabel)),
+          ],
+        ],
+      ),
+    );
+  }
+
   Future<void> _showAddAddressDialog() async {
     final formKey = GlobalKey<FormState>();
     _fullNameController.clear();
@@ -259,8 +346,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
     _cityController.clear();
     _regionController.clear();
 
-    final address = await showDialog<Address>(
+    // Captured here so the dialog's save button can hand the entered values
+    // back without mutating state during build.
+    late SavedAddress pendingAddress;
+    final address = await showDialog<SavedAddress>(
       context: context,
+      // The dialog returns the raw form values; they are persisted through
+      // `POST /auth/addresses` below so the address is the shopper's, not a
+      // device-local placeholder.
       builder: (dialogContext) => AlertDialog(
         title: const Text('Add delivery address'),
         content: Form(
@@ -289,18 +382,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 return;
               }
               FocusScope.of(dialogContext).unfocus();
-              Navigator.pop(
-                dialogContext,
-                Address(
-                  id: DateTime.now().microsecondsSinceEpoch.toString(),
-                  fullName: _fullNameController.text.trim(),
-                  phone: _phoneController.text.trim(),
-                  addressLine: _addressController.text.trim(),
-                  city: _cityController.text.trim(),
-                  region: _regionController.text.trim(),
-                  isDefault: _addresses.isEmpty,
-                ),
+              pendingAddress = SavedAddress(
+                id: '',
+                fullName: _fullNameController.text.trim(),
+                phone: _phoneController.text.trim(),
+                street: _addressController.text.trim(),
+                city: _cityController.text.trim(),
+                state: _regionController.text.trim(),
+                postalCode: '',
+                isDefault: _addresses.isEmpty,
               );
+              Navigator.pop(dialogContext, pendingAddress);
             },
             child: const Text('Save address'),
           ),
@@ -308,11 +400,42 @@ class _CheckoutPageState extends State<CheckoutPage> {
       ),
     );
 
-    if (address != null && mounted) {
+    if (address == null) return;
+    await _saveAddress(address);
+  }
+
+  /// Persists a newly entered address, then refreshes from the backend so the
+  /// list shows what was actually stored (including any server-assigned id).
+  Future<void> _saveAddress(SavedAddress address) async {
+    setState(() {
+      _isSubmitting = true;
+      _addressError = null;
+    });
+    try {
+      final saved = await _addressService.add(
+        fullName: address.fullName,
+        phone: address.phone,
+        street: address.street,
+        city: address.city,
+        state: address.state,
+      );
+      if (!mounted) return;
       setState(() {
-        _addresses.add(address);
-        _selectedAddress = address;
+        _addresses
+          ..clear()
+          ..addAll(saved);
+        _selectedAddress = saved.isEmpty
+            ? address
+            : saved.firstWhere(
+                (entry) => entry.street == address.street,
+                orElse: () => saved.last,
+              );
       });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _addressError = e.message);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -541,15 +664,24 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   // ==================== SUBMIT ORDER ====================
+  /// Creates the order on the backend from the server-side cart, then starts
+  /// the payment the shopper chose.
+  ///
+  /// The order is only reported as placed once `POST /orders/checkout` returns
+  /// one - nothing is invented locally, so a failure leaves the shopper on the
+  /// form with the backend's message instead of a confirmation for an order that
+  /// does not exist.
   Future<void> _submitOrder() async {
-    if (_selectedAddress == null) {
+    final address = _selectedAddress;
+    if (address == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a delivery address')),
       );
       return;
     }
 
-    if (_paymentInputController.text.trim().isEmpty) {
+    final paymentInput = _paymentInputController.text.trim();
+    if (paymentInput.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -562,59 +694,145 @@ class _CheckoutPageState extends State<CheckoutPage> {
       return;
     }
 
-    setState(() => _isSubmitting = true);
+    setState(() {
+      _isSubmitting = true;
+      _checkoutError = null;
+    });
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() => _isSubmitting = false);
-
-    if (mounted) {
-      // Show success
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.green, size: 28),
-              SizedBox(width: 10),
-              Text('Order Placed!'),
-            ],
-          ),
-          content: const Text(
-            'Your order has been placed successfully. You will receive a confirmation soon.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // close dialog
-                widget.onOrderPlaced(_buildOrder());
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        ),
+    try {
+      final order = await _orders.checkout(
+        shippingAddress: address.toShippingAddress(),
+        paymentMethod: _selectedPaymentMethod,
       );
+
+      // Payment is initiated against the created order. Mobile money resolves
+      // asynchronously after the shopper approves the USSD prompt, so the
+      // dialog says "awaiting confirmation" rather than claiming success.
+      var awaitingConfirmation = false;
+      if (_selectedPaymentMethod == 'Mobile Money') {
+        await _orders.initiateMobileMoney(
+          orderId: order.id,
+          phoneNumber: paymentInput,
+        );
+        awaitingConfirmation = true;
+      } else {
+        final redirect = await _orders.initiateKpayCard(order.id);
+        if (redirect != null) {
+          await _openCardPayment(redirect, order);
+          return;
+        }
+        awaitingConfirmation = true;
+      }
+
+      if (!mounted) return;
+      await _showPlacedDialog(order, awaitingConfirmation: awaitingConfirmation);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _checkoutError = e.message);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
-  Order _buildOrder() {
+  /// K-Pay card payments finish on the provider's page, so the shopper is sent
+  /// to that page in their browser rather than being shown a bare URL.
+  ///
+  /// The confirmation dialog is shown first: it explains what is about to
+  /// happen and keeps the order summary on screen if the browser fails to open.
+  Future<void> _openCardPayment(String redirectUrl, BuyerOrder order) async {
+    // Captured before the dialog so it is not used across the async gaps.
+    final messenger = ScaffoldMessenger.of(context);
+
+    await _showPlacedDialog(order, awaitingConfirmation: true);
+
+    final uri = Uri.tryParse(redirectUrl);
+    final opened =
+        uri != null &&
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (opened) return;
+
+    // The browser could not be opened (no handler, or an unusable URL), so the
+    // link is surfaced rather than silently dropped.
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('Open this link to complete card payment: $redirectUrl'),
+        duration: const Duration(seconds: 12),
+      ),
+    );
+  }
+
+  Future<void> _showPlacedDialog(
+    BuyerOrder order, {
+    required bool awaitingConfirmation,
+  }) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(
+              awaitingConfirmation ? Icons.schedule : Icons.check_circle,
+              color: awaitingConfirmation ? Colors.orange : Colors.green,
+              size: 28,
+            ),
+            const SizedBox(width: 10),
+            Text(awaitingConfirmation ? 'Order placed' : 'Order placed'),
+          ],
+        ),
+        content: Text(
+          awaitingConfirmation
+              ? 'Order ${order.orderNumber} was created. Approve the payment '
+                  'prompt on your phone to complete it.'
+              : 'Order ${order.orderNumber} was created.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext); // close dialog
+              widget.onOrderPlaced(_buildOrder(order));
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Projects the backend's order onto the local `Order` the tracking page
+  /// renders. Totals come from the backend rather than this form's estimate,
+  /// since the server is the authority on what was charged.
+  Order _buildOrder(BuyerOrder order) {
     return Order(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      orderNumber: 'MV-${DateTime.now().millisecondsSinceEpoch}',
-      orderDate: DateTime.now(),
-      status: OrderStatus.confirmed,
+      id: order.id,
+      orderNumber: order.orderNumber,
+      orderDate: order.createdAt ?? DateTime.now(),
+      status: switch (order.status) {
+        BuyerOrderStatus.pending => OrderStatus.pending,
+        BuyerOrderStatus.confirmed => OrderStatus.confirmed,
+        BuyerOrderStatus.processing => OrderStatus.processing,
+        BuyerOrderStatus.shipped => OrderStatus.shipped,
+        BuyerOrderStatus.outForDelivery => OrderStatus.outForDelivery,
+        BuyerOrderStatus.delivered => OrderStatus.delivered,
+        BuyerOrderStatus.cancelled => OrderStatus.cancelled,
+        BuyerOrderStatus.unknown => OrderStatus.pending,
+      },
       items: List<CartItem>.from(widget.cartItems),
-      deliveryAddress: _selectedAddress!,
+      deliveryAddress: Address(
+        id: _selectedAddress?.id ?? '',
+        fullName: _selectedAddress?.fullName ?? '',
+        phone: _selectedAddress?.phone ?? '',
+        addressLine: _selectedAddress?.street ?? '',
+        city: _selectedAddress?.city ?? '',
+        region: _selectedAddress?.state ?? '',
+      ),
       paymentMethod: _selectedPaymentMethod,
       subtotal: widget.subtotal,
       shippingFee: widget.shippingFee,
       serviceFee: widget.serviceFee,
       tax: widget.tax,
-      total: widget.total,
-      trackingNumber: 'TRK-${DateTime.now().millisecondsSinceEpoch}',
+      total: order.total == 0 ? widget.total : order.total,
     );
   }
 }

@@ -13,8 +13,13 @@ import '../features/affiliate/presentation/screens/affiliate_stats_screen.dart';
 import '../features/affiliate/presentation/screens/affiliate_earnings_screen.dart';
 import '../features/affiliate/presentation/screens/affiliate_payouts_screen.dart';
 import '../features/affiliate/presentation/screens/affiliate_notifications_screen.dart';
+import '../features/affiliate/presentation/screens/affiliate_wallet_screen.dart';
 import '../features/affiliate/presentation/shell/affiliate_shell.dart';
+import '../features/delivery/presentation/screens/delivery_account_screens.dart';
+import '../features/delivery/presentation/screens/delivery_screens.dart';
+import '../features/delivery/presentation/shell/delivery_shell.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/feature_unavailable_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/account/account_screen.dart';
@@ -52,6 +57,13 @@ import '../screens/settings/settings_screen.dart';
 import '../screens/subscriptions/subscriptions_screen.dart';
 import '../screens/support/support_screen.dart';
 import '../screens/suppliers/suppliers_screen.dart';
+import '../screens/suppliers/supplier_inventory_screen.dart';
+import '../screens/suppliers/supplier_notifications_screen.dart';
+import '../screens/suppliers/supplier_orders_screen.dart';
+import '../screens/suppliers/supplier_overview_screen.dart';
+import '../screens/suppliers/supplier_products_screen.dart';
+import '../screens/suppliers/supplier_profile_screen.dart';
+import '../screens/suppliers/supplier_shell.dart';
 import '../screens/system/system_screen.dart';
 import '../screens/transactions/transactions_screen.dart';
 import '../screens/trust/trust_screen.dart';
@@ -62,11 +74,180 @@ import '../screens/acquisitions/acquisitions_screen.dart';
 import '../screens/vendor/vendor_shell.dart';
 import '../screens/vendor/vendor_overview_screen.dart';
 import '../screens/vendor/vendor_products_screen.dart';
+import '../screens/vendor/become_seller_screen.dart';
+import '../screens/vendor/vendor_finance_screens.dart';
 import '../screens/vendor/vendor_profile_screen.dart';
 import '../features/vendor/screens/vendor_orders_screen.dart';
 import '../features/vendor/screens/vendor_sales_screen.dart';
 import '../features/vendor/screens/vendor_notifications_screen.dart';
 import '../features/vendor/screens/vendor_settings_screen.dart';
+
+/// A supplier portal destination the API does not serve yet.
+class _UnavailablePage {
+  const _UnavailablePage(this.path, this.title, this.icon, this.detail);
+
+  final String path;
+  final String title;
+  final String icon;
+  final String detail;
+}
+
+/// The remaining entries of the frontend supplier nav groups. The web app
+/// fills these with hard-coded seed rows, so the mobile app routes them to a
+/// clear "not connected yet" state rather than inventing payouts, staff
+/// records or delivery milestones.
+const _unavailableSupplierPages = <_UnavailablePage>[
+  _UnavailablePage(
+    '/supplier/supply-requests',
+    'Supply requests',
+    'cart',
+    'Inbound supply requests are not exposed for supplier accounts yet. The '
+        'API only serves your wholesale catalogue, profile and orders.',
+  ),
+  _UnavailablePage(
+    '/supplier/delivery',
+    'Delivery & settlement',
+    'box',
+    'Delivery milestones and settlement releases are not served to suppliers '
+        'yet. The order list tracks the supply status that the API returns.',
+  ),
+  _UnavailablePage(
+    '/supplier/payments',
+    'Payments',
+    'wallet',
+    'Supplier payouts are not exposed by the MVEC API for supplier accounts '
+        'yet, so no amounts are shown here.',
+  ),
+  _UnavailablePage(
+    '/supplier/transactions',
+    'Transactions',
+    'wallet',
+    'A supplier-scoped transaction ledger is not available yet.',
+  ),
+  _UnavailablePage(
+    '/supplier/analytics',
+    'Analytics',
+    'chart',
+    'Trend reporting is not served for suppliers yet. Your catalogue and order '
+        'totals are available on the dashboard.',
+  ),
+  _UnavailablePage(
+    '/supplier/reports',
+    'Reports',
+    'chart',
+    'Scheduled and historical supplier reports are not available yet.',
+  ),
+  _UnavailablePage(
+    '/supplier/reviews',
+    'Reviews',
+    'heart',
+    'Buyer reviews for your business are not served by the API yet.',
+  ),
+  _UnavailablePage(
+    '/supplier/team',
+    'Team & staff',
+    'users',
+    'Supplier staff accounts are not managed through the API yet.',
+  ),
+];
+
+/// The vendor portal destinations the web console fills with fabricated rows.
+///
+/// `ModulePage` in the web `src/pages/VendorDashboard.jsx` stores these pages in
+/// `localStorage` seeded with hard-coded arrays — no API call is ever made. The
+/// mobile app refuses to reproduce those numbers as if they were real, so each
+/// of these routes keeps its place in the navigation and states that the data
+/// is not connected yet.
+const _unavailableVendorPages = <_UnavailablePage>[
+  _UnavailablePage(
+    '/vendor/stores',
+    'My Store',
+    'shop',
+    'The web console seeds multiple store records in the browser. The MVEC '
+        'API serves one store per vendor account at /stores/mine, which is '
+        'what the Store Profile page uses.',
+  ),
+  _UnavailablePage(
+    '/vendor/customers',
+    'Customers',
+    'users',
+    'Customer records are seeded in the browser by the web console. The API '
+        'does not expose a vendor-scoped customer list yet.',
+  ),
+  _UnavailablePage(
+    '/vendor/suppliers',
+    'Find Suppliers',
+    'shop',
+    'Supplier discovery is a static browser-side list in the web console. No '
+        'supplier search endpoint is exposed to vendor accounts yet.',
+  ),
+  _UnavailablePage(
+    '/vendor/affiliates',
+    'Affiliate Marketing',
+    'users',
+    'The affiliate programme dashboard is rendered from hard-coded metrics in '
+        'the web console, not from an API.',
+  ),
+  _UnavailablePage(
+    '/vendor/advertisements',
+    'Advertisements',
+    'tag',
+    'Vendor advertising configuration has no vendor-scoped endpoint. Campaign '
+        'management is served to the MVEC admin only.',
+  ),
+  _UnavailablePage(
+    '/vendor/promotions',
+    'Promotions',
+    'tag',
+    'Promotions and coupons are stored in the browser by the web console. No '
+        'vendor promotion endpoint is exposed yet.',
+  ),
+  _UnavailablePage(
+    '/vendor/subscription',
+    'Subscription',
+    'wallet',
+    'Vendor plans are static module defaults in the web console. Subscription '
+        'records the API serves are admin-scoped.',
+  ),
+  _UnavailablePage(
+    '/vendor/refunds',
+    'Refunds',
+    'wallet',
+    'Refund requests are seeded rows in the web console. Refunds reach a '
+        'vendor through dispute arbitration, which is served from the Orders '
+        'and Disputes records.',
+  ),
+  _UnavailablePage(
+    '/vendor/shipping',
+    'Shipping',
+    'shop',
+    'Shipping zones are hard-coded per browser in the web console. The '
+        '/shipping/zones data the API serves is platform-wide, not vendor '
+        'configurable.',
+  ),
+  _UnavailablePage(
+    '/vendor/delivery',
+    'Delivery & Settlement',
+    'box',
+    'The web console renders this page from mock delivery data. Delivery '
+        'tracking and settlement live on each order, and the delivery partner '
+        'confirms them with the buyer OTP from the delivery portal.',
+  ),
+  _UnavailablePage(
+    '/vendor/reports',
+    'Reports',
+    'chart',
+    'Vendor reports are generated in the browser from seeded rows. The report '
+        'endpoints the API serves are admin-scoped.',
+  ),
+  _UnavailablePage(
+    '/vendor/team',
+    'Team / Staff',
+    'users',
+    'Staff accounts are seeded in the browser by the web console. Staff records '
+        'are not managed through the API for vendor accounts.',
+  ),
+];
 
 /// Routes that a signed-in user must never stay on.
 const _publicAuthPaths = <String>[
@@ -76,6 +257,24 @@ const _publicAuthPaths = <String>[
   '/verify-code',
   '/reset-password',
 ];
+
+// Marketplace routes a signed-out visitor may browse without an account.
+// Anything that touches an account, an order or money is deliberately absent
+// here and is guarded below instead.
+const _publicRoutes = <String>[
+  '/home',
+  '/shop',
+  '/search',
+  '/categories',
+  '/vendors',
+  '/product',
+];
+
+bool _isPublicRoute(String location) {
+  if (_publicAuthPaths.any(location.startsWith)) return true;
+  if (_publicRoutes.any(location.startsWith)) return true;
+  return false;
+}
 
 final routerProvider = Provider<GoRouter>((ref) {
   final gate = ValueNotifier(0);
@@ -88,18 +287,20 @@ final routerProvider = Provider<GoRouter>((ref) {
   });
 
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/home',
     refreshListenable: gate,
     redirect: (context, state) {
       final auth = ref.read(authControllerProvider);
       final loc = state.matchedLocation;
-      final isPublic = _publicAuthPaths.any(loc.startsWith);
+      final isPublic = _isPublicRoute(loc);
       if (auth.restoring) return null;
 
       if (auth.isLoggedIn) {
         final user = auth.session!.user;
         // A signed-in user should never sit on a public auth page.
-        if (isPublic) return roleHome(user);
+        if (_publicAuthPaths.any(loc.startsWith)) {
+          return roleHome(user);
+        }
         // Only super admins may enter the control center.
         if (loc.startsWith('/admin') && user.userType != 'super_admin') {
           return '/home';
@@ -108,10 +309,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (loc.startsWith('/affiliate') && user.userType != 'affiliate') {
           return '/home';
         }
-        // The vendor portal is the vendor's own landing area; everyone else is
+        // Vendor portal access
         // sent to their own home rather than shown a vendor console.
         if (loc.startsWith('/vendor') && user.userType != 'vendor') {
-          return roleHome(user);
+          return '/home';
+        }
+        // The supplier portal is exclusive to suppliers.
+        if (loc.startsWith('/supplier') && user.userType != 'supplier') {
+          return '/home';
+        }
+        // The delivery portal is exclusive to delivery partners.
+        if (loc.startsWith('/delivery') && user.userType != 'delivery') {
+          return '/home';
         }
         return null;
       }
@@ -125,17 +334,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (loc == '/verify-code' && !pendingReset) return '/forgot-password';
         return null;
       }
-      return '/login';
+      // For protected routes when signed out, send to home (marketplace) instead of login
+      // Authentication should only be required when user takes action
+      if (_isPublicRoute(loc)) return null;
+      return '/home';
     },
     routes: [
-      GoRoute(
-        path: '/',
-        redirect: (_, __) {
-          final auth = ref.read(authControllerProvider);
-          if (auth.isLoggedIn) return roleHome(auth.session!.user);
-          return '/login';
-        },
-      ),
+      GoRoute(path: '/', redirect: (_, __) => '/home'),
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/signup', builder: (_, __) => const RegisterScreen()),
       GoRoute(
@@ -151,6 +356,105 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const ResetPasswordScreen(),
       ),
       GoRoute(path: '/home', builder: (_, __) => const MainNavigationScreen()),
+      // Supplier portal. Deliberately outside /admin so the super-admin-only
+      // guard below never bounces a supplier away from their own dashboard.
+      //
+      // Every route is mounted inside SupplierShell so the grouped nav, header
+      // web DashboardLayout
+      // paths match supplier nav groups
+      // exactly; pages without an API are routed to an explicit unavailable
+      // state instead of mock numbers.
+      GoRoute(
+        path: '/supplier',
+        builder:
+            (context, state) => const SupplierShell(
+              path: '/supplier',
+              child: SupplierOverviewScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/supplier/products',
+        builder:
+            (context, state) => const SupplierShell(
+              path: '/supplier/products',
+              child: SupplierProductsScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/supplier/inventory',
+        builder:
+            (context, state) => const SupplierShell(
+              path: '/supplier/inventory',
+              child: SupplierInventoryScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/supplier/orders',
+        builder:
+            (context, state) => const SupplierShell(
+              path: '/supplier/orders',
+              child: SupplierOrdersScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/supplier/settings',
+        builder:
+            (context, state) => const SupplierShell(
+              path: '/supplier/settings',
+              child: SupplierProfileScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/supplier/notifications',
+        builder:
+            (context, state) => const SupplierShell(
+              path: '/supplier/notifications',
+              child: SupplierNotificationsScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/supplier/messages',
+        builder:
+            (context, state) => const SupplierShell(
+              path: '/supplier/messages',
+              child: MessagesScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/supplier/support',
+        builder:
+            (context, state) => const SupplierShell(
+              path: '/supplier/support',
+              child: MessagesScreen(),
+            ),
+      ),
+      // Legacy alias kept so older deep links keep working.
+      GoRoute(
+        path: '/supplier/profile',
+        redirect: (_, __) => '/supplier/settings',
+      ),
+      GoRoute(
+        path: '/supplier/search',
+        builder:
+            (context, state) => const SupplierShell(
+              path: '/supplier/search',
+              child: SearchScreen(),
+            ),
+      ),
+      for (final page in _unavailableSupplierPages)
+        GoRoute(
+          path: page.path,
+          builder:
+              (context, state) => SupplierShell(
+                path: page.path,
+                child: FeatureUnavailableScreen(
+                  feature: page.title,
+                  detail: page.detail,
+                  eyebrow: 'SUPPLIER PLATFORM',
+                  icon: page.icon,
+                ),
+              ),
+        ),
       GoRoute(
         path: '/affiliate',
         builder:
@@ -223,12 +527,47 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: AffiliatePayoutsScreen(),
             ),
       ),
+      // The web console names the wallet and withdrawal destinations
+      // /affiliate/wallet and /affiliate/withdrawals. Both are served here, and
+      // /affiliate/payouts stays as the older alias for the withdrawal centre.
+      GoRoute(
+        path: '/affiliate/wallet',
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate/wallet',
+              child: AffiliateWalletScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/affiliate/withdrawals',
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate/withdrawals',
+              child: AffiliatePayoutsScreen(),
+            ),
+      ),
       GoRoute(
         path: '/affiliate/notifications',
         builder:
             (context, state) => const AffiliateShell(
               path: '/affiliate/notifications',
               child: AffiliateNotificationsScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/affiliate/messages',
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate/messages',
+              child: MessagesScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/affiliate/support',
+        builder:
+            (context, state) => const AffiliateShell(
+              path: '/affiliate/support',
+              child: MessagesScreen(),
             ),
       ),
       GoRoute(
@@ -528,7 +867,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // ---------- Vendor portal ----------
       // Every vendor route is wrapped in the vendor shell, which mirrors the
-      // admin shell's layout with the `VendorNav` accordion + bottom bar.
+      // admin shell layout
       GoRoute(
         path: '/vendor',
         builder:
@@ -580,11 +919,176 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
       ),
       GoRoute(
+        path: '/vendor/messages',
+        builder:
+            (context, state) => const VendorShell(
+              path: '/vendor/messages',
+              child: MessagesScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/vendor/support',
+        builder:
+            (context, state) => const VendorShell(
+              path: '/vendor/support',
+              child: MessagesScreen(),
+            ),
+      ),
+      GoRoute(
         path: '/vendor/settings',
         builder:
             (context, state) => const VendorShell(
               path: '/vendor/settings',
               child: VendorSettingsScreen(),
+            ),
+      ),
+      // ---- Vendor destinations that the API actually serves ----
+      //
+      // Each of these reads a real vendor-scoped route, so the numbers on
+      // screen are the platform's own records.
+      GoRoute(
+        path: '/vendor/inventory',
+        builder:
+            (context, state) => const VendorShell(
+              path: '/vendor/inventory',
+              child: VendorProductsScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/vendor/categories',
+        builder:
+            (context, state) => const VendorShell(
+              path: '/vendor/categories',
+              child: VendorCategoriesScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/vendor/purchases',
+        builder:
+            (context, state) => const VendorShell(
+              path: '/vendor/purchases',
+              child: VendorPurchasesScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/vendor/analytics',
+        builder:
+            (context, state) => const VendorShell(
+              path: '/vendor/analytics',
+              child: VendorAnalyticsScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/vendor/payouts',
+        builder:
+            (context, state) => const VendorShell(
+              path: '/vendor/payouts',
+              child: VendorPayoutsScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/vendor/transactions',
+        builder:
+            (context, state) => const VendorShell(
+              path: '/vendor/transactions',
+              child: VendorTransactionsScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/vendor/reviews',
+        builder:
+            (context, state) => const VendorShell(
+              path: '/vendor/reviews',
+              child: VendorReviewsScreen(),
+            ),
+      ),
+      // ---- Vendor destinations the web console fakes ----
+      //
+      // The web app renders these pages from hard-coded `localStorage` seed rows
+      // rather than an API call, so there is nothing real to show. The
+      // navigation stays identical and the page says so plainly instead of
+      // inventing staff, customers or shipment records.
+      for (final page in _unavailableVendorPages)
+        GoRoute(
+          path: page.path,
+          builder:
+              (context, state) => VendorShell(
+                path: page.path,
+                child: FeatureUnavailableScreen(
+                  feature: page.title,
+                  detail: page.detail,
+                  eyebrow: 'SELLER PLATFORM',
+                  icon: page.icon,
+                ),
+              ),
+        ),
+      // Seller upgrade. The web console files this page under
+      // /admin/become-seller; it is also reachable at /become-seller because
+      // the upgrade applies to a buyer account, not an administrator.
+      GoRoute(
+        path: '/become-seller',
+        builder: (context, state) => const BecomeSellerScreen(),
+      ),
+      GoRoute(
+        path: '/admin/become-seller',
+        builder: (context, state) => const BecomeSellerScreen(),
+      ),
+      GoRoute(
+        path: '/buyer/messages',
+        builder: (context, state) => const MessagesScreen(),
+      ),
+      GoRoute(
+        path: '/buyer/notifications',
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      // Delivery portal. Mirrors the web app's `DeliveryLayout`, where every
+      // destination hangs off /delivery and is guarded to delivery accounts.
+      GoRoute(
+        path: '/delivery',
+        builder:
+            (context, state) => const DeliveryShell(
+              path: '/delivery',
+              child: DeliveryDashboardScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/delivery/deliveries',
+        builder:
+            (context, state) => const DeliveryShell(
+              path: '/delivery/deliveries',
+              child: DeliveryDeliveriesScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/delivery/earnings',
+        builder:
+            (context, state) => const DeliveryShell(
+              path: '/delivery/earnings',
+              child: DeliveryEarningsScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/delivery/history',
+        builder:
+            (context, state) => const DeliveryShell(
+              path: '/delivery/history',
+              child: DeliveryHistoryScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/delivery/messages',
+        builder:
+            (context, state) => const DeliveryShell(
+              path: '/delivery/messages',
+              child: MessagesScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/delivery/settings',
+        builder:
+            (context, state) => const DeliveryShell(
+              path: '/delivery/settings',
+              child: DeliverySettingsScreen(),
             ),
       ),
     ],

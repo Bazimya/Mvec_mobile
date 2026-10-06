@@ -3,8 +3,6 @@ import '../models/vendor_notification.dart';
 
 /// Notification feed contract shared by the live API and local demo adapter.
 abstract class VendorNotificationService {
-  bool get isDemo;
-
   Future<List<VendorNotification>> notifications({
     NotificationCategory? category,
   });
@@ -17,9 +15,6 @@ class ApiVendorNotificationService implements VendorNotificationService {
   ApiVendorNotificationService(this._api);
 
   final ApiClient _api;
-
-  @override
-  bool get isDemo => false;
 
   @override
   Future<List<VendorNotification>> notifications({
